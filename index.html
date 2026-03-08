@@ -8,7 +8,6 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Focus">
-    <link rel="apple-touch-icon" href="icon.png">
 
     <style>
       @import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Syne:wght@400;600;800&display=swap');
@@ -73,6 +72,8 @@
     </style>
 </head>
 <body>
+    <audio id="alarmSound" src="https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3" preload="auto"></audio>
+    
     <div class="notify" id="notify">⏰ 時間到！</div>
     <div class="header"><h1>Focus Timer</h1></div>
     <div class="clock-wrap">
@@ -119,6 +120,7 @@
     <script>
       let workMins=40,breakMins=10,totalSeconds=2400,remaining=2400,isRunning=false,isBreak=false,timer=null,session=1,statsWork=0,statsBreak=0,statsSessions=0,logs=[];
       const C=2*Math.PI*120;
+      const alarm = document.getElementById('alarmSound');
       document.getElementById('progressRing').style.strokeDasharray=C;
       document.getElementById('progressRing').style.strokeDashoffset=C;
 
@@ -132,14 +134,9 @@
               isRunning=false;
               document.getElementById('startBtn').textContent='繼續';
           }else{
-              // 新增：連動 iPhone 系統計時器邏輯
-              if(remaining === totalSeconds) {
-                  const confirmSync = confirm(`準備開始 ${isBreak?'休息':'工作'}！\n是否同步開啟 iPhone 計時器以確保關閉螢幕時也能準時提醒？`);
-                  if(confirmSync) {
-                      window.location.href = "clock-timer://"; 
-                  }
-              }
-
+              // 每次開始時解鎖音效（Safari 限制）
+              alarm.play().then(() => { alarm.pause(); alarm.currentTime = 0; }).catch(e => console.log("Sound ready"));
+              
               isRunning=true;
               document.getElementById('startBtn').textContent='暫停';
               timer=setInterval(tick,1000);
@@ -157,6 +154,9 @@
       }
 
       function onComplete(){
+          // 播放鬧鐘聲音
+          alarm.play();
+          
           if(!isBreak){
               statsSessions++;
               statsWork+=workMins;
@@ -182,6 +182,8 @@
 
       function resetTimer(){
           clearInterval(timer);
+          alarm.pause();
+          alarm.currentTime = 0;
           isRunning=false;
           isBreak=false;
           remaining=workMins*60;
