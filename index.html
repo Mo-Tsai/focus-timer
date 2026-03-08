@@ -11,7 +11,7 @@
       *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
       :root {
         --bg: #0e0e0f; --surface: #161618; --border: #2a2a2d;
-        --accent: #e8ff47; --rest: #47d4e8; --yoga: #d4a5ff; --text: #f0f0ec; --muted: #6b6b70;
+        --accent: #e8ff47; --rest: #47d4e8; --meditate: #d4a5ff; --text: #f0f0ec; --muted: #6b6b70;
       }
       body { font-family: 'Syne', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; display: flex; flex-direction: column; align-items: center; padding: 40px 20px; padding-top: env(safe-area-inset-top); user-select: none; }
       .header h1 { font-size: 13px; font-weight: 400; letter-spacing: 0.2em; text-transform: uppercase; color: var(--muted); font-family: 'DM Mono', monospace; margin-bottom: 40px; }
@@ -26,8 +26,8 @@
       .btn { font-family: 'Syne', sans-serif; font-weight: 600; font-size: 13px; border: none; cursor: pointer; border-radius: 6px; padding: 12px 20px; transition: all 0.2s; }
       .btn-primary { background: var(--accent); color: #0e0e0f; }
       .btn-secondary { background: var(--surface); color: var(--muted); border: 1px solid var(--border); }
-      .btn-yoga { background: transparent; color: var(--yoga); border: 1px solid var(--yoga); }
-      .btn-yoga.active { background: var(--yoga); color: #0e0e0f; }
+      .btn-meditate { background: transparent; color: var(--meditate); border: 1px solid var(--meditate); }
+      .btn-meditate.active { background: var(--meditate); color: #0e0e0f; }
       .presets { display: flex; gap: 8px; margin-bottom: 36px; flex-wrap: wrap; justify-content: center; }
       .preset-btn { font-family: 'DM Mono', monospace; font-size: 12px; padding: 7px 14px; border-radius: 4px; border: 1px solid var(--border); background: transparent; color: var(--muted); cursor: pointer; }
       .preset-btn.active { border-color: var(--accent); color: var(--accent); }
@@ -39,7 +39,7 @@
       .stat-value { font-family: 'DM Mono', monospace; font-size: 24px; color: var(--text); display: block; }
       .stat-label { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--muted); text-transform: uppercase; }
       body.break-mode .clock-progress { stroke: var(--rest); }
-      body.yoga-mode .clock-progress { stroke: var(--yoga); }
+      body.meditate-mode .clock-progress { stroke: var(--meditate); }
       body.break-mode .btn-primary { background: var(--rest); }
       .notify { position: fixed; top: 20px; left: 50%; transform: translateX(-50%) translateY(-80px); background: var(--accent); color: #0e0e0f; padding: 12px 24px; border-radius: 8px; transition: transform 0.3s; z-index: 999; }
       .notify.show { transform: translateX(-50%) translateY(0); }
@@ -64,7 +64,7 @@
     <div class="controls">
       <button class="btn btn-primary" id="startBtn" onclick="toggleTimer()">開始</button>
       <button class="btn btn-secondary" onclick="resetTimer()">重置</button>
-      <button class="btn btn-yoga" id="yogaBtn" onclick="toggleYogaMode()">瑜伽模式</button>
+      <button class="btn btn-meditate" id="meditateBtn" onclick="toggleMeditateMode()">冥想模式</button>
     </div>
 
     <div class="presets">
@@ -94,23 +94,23 @@
     </div>
 
     <script>
-      let workMins=40, breakMins=10, totalSeconds=2400, remaining=2400, isRunning=false, isBreak=false, isYoga=false, timer=null, statsWork=0, statsSessions=0, endTime=null;
+      let workMins=40, breakMins=10, totalSeconds=2400, remaining=2400, isRunning=false, isBreak=false, isMeditate=false, timer=null, statsWork=0, statsSessions=0, endTime=null;
       const C=2*Math.PI*120, alarm = document.getElementById('alarmSound'), ring = document.getElementById('progressRing');
       ring.style.strokeDasharray=C; ring.style.strokeDashoffset=C;
 
       function fmt(s){return String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0');}
       function updateDisplay(){
           document.getElementById('timeDisplay').textContent=fmt(remaining);
-          document.getElementById('modeLabel').textContent = isYoga ? "瑜伽" : (isBreak ? "休息" : "工作");
+          document.getElementById('modeLabel').textContent = isMeditate ? "冥想" : (isBreak ? "休息" : "工作");
           ring.style.strokeDashoffset = C * (remaining/totalSeconds);
       }
       
-      function toggleYogaMode(){
-          isYoga = !isYoga;
-          document.getElementById('yogaBtn').classList.toggle('active');
-          document.body.classList.toggle('yoga-mode');
-          document.getElementById('breakSetting').style.opacity = isYoga ? "0.3" : "1";
-          document.getElementById('statType').textContent = isYoga ? "瑜伽" : "專注";
+      function toggleMeditateMode(){
+          isMeditate = !isMeditate;
+          document.getElementById('meditateBtn').classList.toggle('active');
+          document.body.classList.toggle('meditate-mode');
+          document.getElementById('breakSetting').style.opacity = isMeditate ? "0.3" : "1";
+          document.getElementById('statType').textContent = isMeditate ? "冥想" : "專注";
           resetTimer();
       }
 
@@ -138,9 +138,9 @@
 
       function onComplete(){
           alarm.play();
-          if(isYoga){
+          if(isMeditate){
               statsWork += workMins;
-              showNotify('瑜伽練習完成 🙏');
+              showNotify('冥想練習完成 🧘');
               resetTimer();
           } else {
               if(!isBreak){
@@ -162,7 +162,7 @@
       function resetTimer(){
           clearInterval(timer); alarm.pause(); alarm.currentTime=0;
           isRunning=false; isBreak=false; 
-          remaining = isYoga ? (workMins * 60) : (workMins * 60);
+          remaining = (workMins * 60);
           totalSeconds = remaining;
           document.body.classList.remove('break-mode');
           document.getElementById('startBtn').textContent='開始';
@@ -170,7 +170,7 @@
       }
 
       function setPreset(w,b,el){
-          if(isYoga) toggleYogaMode();
+          if(isMeditate) toggleMeditateMode();
           workMins=w; breakMins=b;
           document.getElementById('workInput').value=w;
           document.getElementById('breakInput').value=b;
