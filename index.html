@@ -29,7 +29,6 @@
       .presets { display: flex; gap: 8px; margin-bottom: 36px; }
       .preset-btn { font-family: 'DM Mono', monospace; font-size: 12px; padding: 7px 14px; border-radius: 4px; border: 1px solid var(--border); background: transparent; color: var(--muted); cursor: pointer; }
       .preset-btn.active { border-color: var(--accent); color: var(--accent); }
-      /* 恢復調整視窗樣式 */
       .settings-panel { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 24px; width: 100%; max-width: 340px; margin-bottom: 32px; display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
       .setting-item label { display: block; font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: 0.15em; text-transform: uppercase; color: var(--muted); margin-bottom: 8px; }
       .setting-item input { width: 100%; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; padding: 10px 12px; color: var(--text); font-family: 'DM Mono', monospace; font-size: 20px; text-align: center; outline: none; }
@@ -95,11 +94,17 @@
       function toggleTimer(){
         if(isRunning){ clearInterval(timer); isRunning=false; document.getElementById('startBtn').textContent='繼續'; }
         else {
-          // 啟動音效權限並同步捷徑
+          // 啟動音效權限（iOS 必須透過使用者點擊觸發）
           alarm.play().then(() => { alarm.pause(); alarm.currentTime = 0; });
-          if(remaining === totalSeconds && !isBreak && confirm("啟動系統提醒並進入背景？")) { 
-            window.location.href = "shortcuts://run-shortcut?name=FocusTimer"; 
+          
+          if(remaining === totalSeconds && !isBreak) {
+             const startShortcut = confirm("準備開始 40 分鐘專注？\n點擊確認將嘗試啟動系統提醒功能。\n(若出現網址無效請忽略，網頁仍會響鈴)");
+             if(startShortcut) {
+                // 如果捷徑名稱 FocusTimer 不符，這裡會噴錯
+                window.location.href = "shortcuts://run-shortcut?name=FocusTimer";
+             }
           }
+          
           isRunning=true;
           expectedEndTime = Date.now() + (remaining * 1000);
           document.getElementById('startBtn').textContent='暫停';
@@ -114,10 +119,11 @@
         if(remaining <= 0){ clearInterval(timer); isRunning=false; onComplete(); }
       }
 
+      // 當切換回網頁時自動校正時間 (處理背景休眠問題)
       document.addEventListener('visibilitychange', () => { if(!document.hidden && isRunning) syncTimer(); });
 
       function onComplete(){
-        alarm.play(); // 響鈴
+        alarm.play(); // 播放網頁鬧鈴
         if(!isBreak){ statsSessions++; statsWork+=workMins; isBreak=true; totalSeconds=breakMins*60; document.body.classList.add('break-mode'); }
         else { statsBreak+=breakMins; isBreak=false; session++; totalSeconds=workMins*60; document.body.classList.remove('break-mode'); }
         remaining=totalSeconds; updateDisplay(); updateStats(); document.getElementById('startBtn').textContent='開始';
