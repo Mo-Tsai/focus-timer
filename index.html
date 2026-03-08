@@ -9,79 +9,184 @@
     <style>
       @import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Syne:wght@400;600;800&display=swap');
       *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-      :root { --bg: #0e0e0f; --surface: #161618; --border: #2a2a2d; --accent: #e8ff47; --text: #f0f0ec; --muted: #6b6b70; }
+      :root {
+        --bg: #0e0e0f; --surface: #161618; --border: #2a2a2d;
+        --accent: #e8ff47; --rest: #47d4e8; --text: #f0f0ec; --muted: #6b6b70;
+      }
       body { font-family: 'Syne', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; display: flex; flex-direction: column; align-items: center; padding: 40px 20px; padding-top: env(safe-area-inset-top); user-select: none; }
       .header h1 { font-size: 13px; font-weight: 400; letter-spacing: 0.2em; text-transform: uppercase; color: var(--muted); font-family: 'DM Mono', monospace; margin-bottom: 40px; }
       .clock-wrap { position: relative; width: 280px; height: 280px; margin-bottom: 36px; }
       .clock-svg { width: 100%; height: 100%; transform: rotate(-90deg); }
       .clock-track { fill: none; stroke: var(--border); stroke-width: 6; }
-      .clock-progress { fill: none; stroke: var(--accent); stroke-width: 6; stroke-linecap: round; stroke-dasharray: 754; stroke-dashoffset: 754; transition: stroke-dashoffset 0.5s linear; }
+      .clock-progress { fill: none; stroke: var(--accent); stroke-width: 6; stroke-linecap: round; stroke-dasharray: 754; stroke-dashoffset: 754; transition: stroke-dashoffset 0.5s linear, stroke 0.4s ease; }
       .clock-center { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; }
-      .time-display { font-family: 'DM Mono', monospace; font-size: 56px; font-weight: 300; color: var(--text); }
-      .controls { display: flex; flex-direction: column; gap: 12px; margin-bottom: 32px; width: 200px; }
-      .btn { font-family: 'Syne', sans-serif; font-weight: 600; font-size: 13px; border: none; cursor: pointer; border-radius: 6px; padding: 12px 24px; text-align: center; transition: all 0.2s; }
+      .mode-label { font-family: 'DM Mono', monospace; font-size: 11px; letter-spacing: 0.15em; text-transform: uppercase; color: var(--muted); }
+      .time-display { font-family: 'DM Mono', monospace; font-size: 56px; font-weight: 300; line-height: 1; }
+      .session-count { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--muted); }
+      .controls { display: flex; gap: 12px; margin-bottom: 32px; }
+      .btn { font-family: 'Syne', sans-serif; font-weight: 600; font-size: 13px; border: none; cursor: pointer; border-radius: 6px; padding: 12px 24px; transition: all 0.2s; }
       .btn-primary { background: var(--accent); color: #0e0e0f; }
       .btn-secondary { background: var(--surface); color: var(--muted); border: 1px solid var(--border); }
+      .presets { display: flex; gap: 8px; margin-bottom: 36px; flex-wrap: wrap; justify-content: center; }
+      .preset-btn { font-family: 'DM Mono', monospace; font-size: 12px; padding: 7px 14px; border-radius: 4px; border: 1px solid var(--border); background: transparent; color: var(--muted); cursor: pointer; }
+      .preset-btn.active { border-color: var(--accent); color: var(--accent); }
+      .settings-panel { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 24px; width: 100%; max-width: 340px; margin-bottom: 32px; display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+      .setting-item label { display: block; font-family: 'DM Mono', monospace; font-size: 10px; color: var(--muted); margin-bottom: 8px; text-transform: uppercase; }
+      .setting-item input { width: 100%; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; padding: 10px 12px; color: var(--text); font-family: 'DM Mono', monospace; font-size: 20px; text-align: center; outline: none; }
+      .stats { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 20px 24px; width: 100%; max-width: 340px; }
+      .stats-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; text-align: center; }
+      .stat-value { font-family: 'DM Mono', monospace; font-size: 24px; color: var(--text); display: block; }
+      .stat-label { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--muted); text-transform: uppercase; }
+      .log-wrap { margin-top: 20px; border-top: 1px solid var(--border); padding-top: 16px; }
+      .log-entry { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--muted); padding: 4px 0; display: flex; justify-content: space-between; }
+      .tag { padding: 1px 6px; border-radius: 3px; font-size: 9px; }
+      .tag-work { background: #2a2e10; color: #e8ff47; }
+      .tag-break { background: #0e2a2e; color: #47d4e8; }
+      body.break-mode .clock-progress { stroke: var(--rest); }
+      body.break-mode .btn-primary { background: var(--rest); }
+      .notify { position: fixed; top: 20px; left: 50%; transform: translateX(-50%) translateY(-80px); background: var(--accent); color: #0e0e0f; padding: 12px 24px; border-radius: 8px; transition: transform 0.3s; z-index: 999; }
+      .notify.show { transform: translateX(-50%) translateY(0); }
     </style>
 </head>
-<body>
+<body class="work-mode">
     <audio id="alarmSound" src="https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3" preload="auto"></audio>
+    <div class="notify" id="notify">⏰ 時間到！</div>
     <div class="header"><h1>Focus Timer</h1></div>
+    
     <div class="clock-wrap">
-      <svg class="clock-svg" viewBox="0 0 280 280"><circle class="clock-track" cx="140" cy="140" r="120"/><circle class="clock-progress" id="progressRing" cx="140" cy="140" r="120"/></svg>
+      <svg class="clock-svg" viewBox="0 0 280 280">
+        <circle class="clock-track" cx="140" cy="140" r="120"/>
+        <circle class="clock-progress" id="progressRing" cx="140" cy="140" r="120"/>
+      </svg>
       <div class="clock-center">
-        <span id="modeLabel" style="color:var(--muted); font-size:11px; font-family:'DM Mono'">工作</span>
+        <span class="mode-label" id="modeLabel">工作</span>
         <span class="time-display" id="timeDisplay">40:00</span>
+        <span class="session-count" id="sessionCount">第 1 輪</span>
       </div>
     </div>
+
     <div class="controls">
-      <button class="btn btn-primary" id="startBtn" onclick="toggleTimer()">開始專注</button>
-      <button class="btn btn-secondary" onclick="resetTimer()">重置計時器</button>
+      <button class="btn btn-primary" id="startBtn" onclick="toggleTimer()">開始</button>
+      <button class="btn btn-secondary" onclick="resetTimer()">重置</button>
+    </div>
+
+    <div class="presets">
+      <button class="preset-btn" onclick="setPreset(25,5,this)">25 / 5</button>
+      <button class="preset-btn active" onclick="setPreset(40,10,this)">40 / 10</button>
+      <button class="preset-btn" onclick="setPreset(50,10,this)">50 / 10</button>
+      <button class="preset-btn" onclick="setPreset(90,20,this)">90 / 20</button>
+    </div>
+
+    <div class="settings-panel">
+      <div class="setting-item">
+        <label>工作 (分)</label>
+        <input type="number" id="workInput" value="40" onchange="updateSettings()">
+      </div>
+      <div class="setting-item">
+        <label>休息 (分)</label>
+        <input type="number" id="breakInput" value="10" onchange="updateSettings()">
+      </div>
+    </div>
+
+    <div class="stats">
+      <div class="stats-grid">
+        <div class="stat-item"><span class="stat-value" id="statSessions">0</span><span class="stat-label">輪次</span></div>
+        <div class="stat-item"><span class="stat-value" id="statWork">0</span><span class="stat-label">工作分</span></div>
+        <div class="stat-item"><span class="stat-value" id="statBreak">0</span><span class="stat-label">休息分</span></div>
+      </div>
+      <div class="log-wrap" id="logWrap"></div>
     </div>
 
     <script>
-      let workMins=40, totalSeconds=2400, remaining=2400, isRunning=false, timer=null, endTime=null;
+      let workMins=40, breakMins=10, totalSeconds=2400, remaining=2400, isRunning=false, isBreak=false, timer=null, session=1, statsWork=0, statsBreak=0, statsSessions=0, logs=[], endTime=null;
       const C=2*Math.PI*120, alarm = document.getElementById('alarmSound'), ring = document.getElementById('progressRing');
       ring.style.strokeDasharray=C; ring.style.strokeDashoffset=C;
 
+      function fmt(s){return String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0');}
+      function updateRing(){ring.style.strokeDashoffset = C * (remaining/totalSeconds);}
       function updateDisplay(){
-          document.getElementById('timeDisplay').textContent = `${String(Math.floor(remaining/60)).padStart(2,'0')}:${String(remaining%60).padStart(2,'0')}`;
-          ring.style.strokeDashoffset = C * (remaining/totalSeconds);
+          document.getElementById('timeDisplay').textContent=fmt(remaining);
+          document.getElementById('modeLabel').textContent=isBreak?'休息':'工作';
+          document.getElementById('sessionCount').textContent='第 '+session+' 輪';
+          updateRing();
       }
-
+      
       function toggleTimer(){
           if(isRunning){
               clearInterval(timer); isRunning=false;
-              document.getElementById('startBtn').textContent='繼續專注';
-          } else {
-              // 點擊即解鎖音效權限
+              document.getElementById('startBtn').textContent='繼續';
+          }else{
               alarm.play().then(()=>{alarm.pause(); alarm.currentTime=0;}); 
               isRunning=true;
-              document.getElementById('startBtn').textContent='暫停計時';
-              // 記錄下「結束時刻」的絕對時間
+              document.getElementById('startBtn').textContent='暫停';
               endTime = Date.now() + (remaining * 1000);
-              timer = setInterval(syncTick, 1000);
+              timer=setInterval(syncTick, 1000);
           }
       }
 
       function syncTick(){
           const now = Date.now();
-          // 用「現實時間」減去「目標結束時間」，即使背景暫停回來後也會自動校正
           remaining = Math.max(0, Math.round((endTime - now) / 1000));
-          
-          if(remaining <= 0){
-              clearInterval(timer); isRunning=false;
-              alarm.play(); // 時間到響鈴
-              document.getElementById('startBtn').textContent='點擊停止鈴聲';
-          }
           updateDisplay();
+          if(remaining<=0){
+              clearInterval(timer); isRunning=false; onComplete();
+          }
+      }
+
+      function onComplete(){
+          alarm.play();
+          if(!isBreak){
+              statsSessions++; statsWork+=workMins; addLog('工作',workMins);
+              showNotify('工作完成！休息 '+breakMins+' 分鐘 ☕');
+              isBreak=true; totalSeconds=breakMins*60;
+              document.body.classList.add('break-mode');
+          }else{
+              statsBreak+=breakMins; addLog('休息',breakMins);
+              showNotify('休息結束！開始下一輪 💪');
+              isBreak=false; session++; totalSeconds=workMins*60;
+              document.body.classList.remove('break-mode');
+          }
+          remaining=totalSeconds; updateDisplay(); updateStats();
+          document.getElementById('startBtn').textContent='開始';
       }
 
       function resetTimer(){
           clearInterval(timer); alarm.pause(); alarm.currentTime=0;
-          isRunning=false; remaining=workMins*60; totalSeconds=remaining;
-          document.getElementById('startBtn').textContent='開始專注';
+          isRunning=false; isBreak=false; remaining=workMins*60; totalSeconds=remaining;
+          document.body.classList.remove('break-mode');
+          document.getElementById('startBtn').textContent='開始';
           updateDisplay();
+      }
+
+      function setPreset(w,b,el){
+          workMins=w; breakMins=b;
+          document.getElementById('workInput').value=w;
+          document.getElementById('breakInput').value=b;
+          document.querySelectorAll('.preset-btn').forEach(e=>e.classList.remove('active'));
+          el.classList.add('active'); resetTimer();
+      }
+
+      function updateSettings(){
+          workMins=parseInt(document.getElementById('workInput').value)||25;
+          breakMins=parseInt(document.getElementById('breakInput').value)||5;
+          resetTimer();
+      }
+
+      function updateStats(){
+          document.getElementById('statSessions').textContent=statsSessions;
+          document.getElementById('statWork').textContent=statsWork;
+          document.getElementById('statBreak').textContent=statsBreak;
+      }
+
+      function addLog(type,mins){
+          const now=new Date(); const t=String(now.getHours()).padStart(2,'0')+':'+String(now.getMinutes()).padStart(2,'0');
+          logs.unshift({type,mins,time:t}); if(logs.length>10)logs.pop();
+          document.getElementById('logWrap').innerHTML=logs.map(l=>`<div class="log-entry"><span>${l.time}</span><span>${l.mins} 分鐘</span><span class="tag tag-${l.type==='工作'?'work':'break'}">${l.type}</span></div>`).join('');
+      }
+
+      function showNotify(msg){
+          const el=document.getElementById('notify'); el.textContent=msg;
+          el.classList.add('show'); setTimeout(()=>el.classList.remove('show'),3000);
       }
       updateDisplay();
     </script>
