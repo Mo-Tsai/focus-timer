@@ -8,6 +8,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Focus">
+    <link rel="apple-touch-icon" href="icon.png">
 
     <style>
       @import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Syne:wght@400;600;800&display=swap');
@@ -131,6 +132,14 @@
               isRunning=false;
               document.getElementById('startBtn').textContent='繼續';
           }else{
+              // 新增：連動 iPhone 系統計時器邏輯
+              if(remaining === totalSeconds) {
+                  const confirmSync = confirm(`準備開始 ${isBreak?'休息':'工作'}！\n是否同步開啟 iPhone 計時器以確保關閉螢幕時也能準時提醒？`);
+                  if(confirmSync) {
+                      window.location.href = "clock-timer://"; 
+                  }
+              }
+
               isRunning=true;
               document.getElementById('startBtn').textContent='暫停';
               timer=setInterval(tick,1000);
@@ -169,9 +178,6 @@
           updateDisplay();
           updateStats();
           document.getElementById('startBtn').textContent='開始';
-          setTimeout(()=>{
-              toggleTimer();
-          },1500);
       }
 
       function resetTimer(){
