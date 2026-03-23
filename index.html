@@ -2,522 +2,1096 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="theme-color" content="#0a0a0c">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Focus Timer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap" rel="stylesheet">
 <style>
-*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
-:root{
-  --bg:#0a0a0c;--fg:rgba(255,255,255,0.88);
-  --dim:rgba(255,255,255,0.22);--border:rgba(255,255,255,0.08);
-  --hi:rgba(255,255,255,0.16);
-  --beta:#5b9cf6;--alpha:#52c97e;--theta:#a78bfa;
-}
-html,body{height:100%;}
-body{
-  background:var(--bg);color:var(--fg);
-  font-family:-apple-system,'SF Pro Display','Segoe UI',sans-serif;
-  display:flex;flex-direction:column;align-items:center;
-  justify-content:center;gap:28px;
-  -webkit-font-smoothing:antialiased;
-  transition:background 2s ease;
-  overflow:hidden;
-}
-body.cf{background:#07090f;}
-body.cb{background:#070f09;}
-body.cm{background:#0c0810;}
-
-.app-label{font-size:9px;letter-spacing:6px;color:rgba(255,255,255,0.1);text-transform:uppercase;}
-
-.tabs{
-  display:flex;gap:2px;
-  background:rgba(255,255,255,0.04);
-  border:1px solid var(--border);border-radius:14px;padding:4px;
-}
-.tab{
-  padding:10px 32px;font-size:11px;letter-spacing:2.5px;
-  text-transform:uppercase;color:var(--dim);
-  background:transparent;border:none;cursor:pointer;
-  border-radius:10px;transition:all 0.3s;font-weight:500;
-  -webkit-tap-highlight-color:transparent;
-}
-.tab.on{
-  background:rgba(255,255,255,0.1);color:var(--fg);
-  box-shadow:0 1px 3px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,255,255,.1);
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
 }
 
-.timer-area{text-align:center;display:flex;flex-direction:column;align-items:center;gap:6px;}
-
-.t-track{
-  cursor:ns-resize;padding:16px 40px;
-  touch-action:none;border-radius:20px;
-  border:1px solid transparent;
-  transition:border-color 0.2s,background 0.2s;
-  -webkit-tap-highlight-color:transparent;
+:root {
+  --bg: #0a0a0c;
+  --surface: rgba(255,255,255,0.03);
+  --ring: rgba(255,255,255,0.05);
+  --ring-outer: rgba(255,255,255,0.10);
+  --text: rgba(255,255,255,0.92);
+  --muted: rgba(255,255,255,0.42);
+  --dim: rgba(255,255,255,0.28);
+  --divider: rgba(255,255,255,0.07);
+  --accent: #5b9cf6;
+  --accent-rgb: 91,156,246;
+  --alpha: #a78bfa;
+  --alpha-rgb: 167,139,250;
+  --theta: #34d399;
+  --theta-rgb: 52,211,153;
+  --red: rgba(220,70,55,0.9);
+  --red-bg: rgba(220,70,55,0.09);
+  --red-ring: rgba(220,70,55,0.35);
+  --ease: cubic-bezier(0.16,1,0.3,1);
+  --ease-fast: cubic-bezier(0.16,1,0.3,1);
 }
-.t-track:hover,.t-track:active{
-  background:rgba(255,255,255,0.03);border-color:var(--border);
-}
-.t-num{
-  font-size:clamp(80px,22vw,120px);
-  font-weight:200;letter-spacing:-6px;
-  font-variant-numeric:tabular-nums;line-height:1;
-  transition:color 0.5s;color:rgba(255,255,255,0.9);
-}
-.t-num.hl{color:var(--beta);}
 
-.b-track{
-  display:inline-flex;align-items:center;gap:8px;
-  cursor:ns-resize;padding:8px 20px;
-  border-radius:24px;border:1px solid transparent;
-  transition:all 0.2s;touch-action:none;
-  -webkit-tap-highlight-color:transparent;
+html, body {
+  height: 100%;
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Inter', ui-sans-serif, system-ui, -apple-system, sans-serif;
+  font-weight: 550;
+  font-feature-settings: 'ss02' 0;
+  font-size: 14px;
+  line-height: 2;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
-.b-track:hover,.b-track:active{background:rgba(255,255,255,0.05);border-color:var(--border);}
-.b-track.hl{border-color:rgba(91,156,246,.4);}
-.b-lbl{font-size:11px;letter-spacing:2px;color:var(--dim);text-transform:uppercase;}
-.b-val{font-size:13px;letter-spacing:1px;color:rgba(255,255,255,.5);font-variant-numeric:tabular-nums;}
 
-.phase{font-size:10px;letter-spacing:4px;color:var(--dim);text-transform:uppercase;height:18px;transition:color 0.5s;}
+body.cf { background: radial-gradient(ellipse at 60% 20%, rgba(91,156,246,0.06) 0%, #0a0a0c 65%); }
+body.cb { background: radial-gradient(ellipse at 60% 20%, rgba(52,211,153,0.06) 0%, #0a0a0c 65%); }
+body.cm { background: radial-gradient(ellipse at 50% 50%, rgba(167,139,250,0.06) 0%, #0a0a0c 65%); }
 
-.scroll-hint{
-  font-size:9px;letter-spacing:2px;color:rgba(255,255,255,0.1);
-  text-transform:uppercase;display:flex;align-items:center;gap:6px;
+.app {
+  min-height: 100svh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 40px 28px;
+  max-width: 440px;
+  margin: 0 auto;
+  gap: 0;
 }
-.scroll-hint::before,.scroll-hint::after{content:'';display:block;width:16px;height:1px;background:rgba(255,255,255,0.08);}
 
-.wave-row{display:flex;gap:6px;}
-.wb{
-  flex:1;display:flex;flex-direction:column;align-items:center;gap:5px;
-  padding:12px 16px;min-width:90px;
-  background:rgba(255,255,255,0.03);border:1px solid var(--border);
-  border-radius:12px;cursor:pointer;transition:all 0.25s;color:var(--dim);
-  -webkit-tap-highlight-color:transparent;
+/* ── Header ── */
+.header {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  margin-bottom: 28px;
 }
-.wb:active{transform:scale(0.97);}
-.wb .wn{font-size:13px;letter-spacing:1px;font-weight:500;}
-.wb .ws{font-size:9px;letter-spacing:1px;opacity:0.6;}
-.wb.on.beta {background:rgba(91,156,246,.1);border-color:rgba(91,156,246,.4);color:var(--beta);}
-.wb.on.alpha{background:rgba(82,201,126,.1);border-color:rgba(82,201,126,.4);color:var(--alpha);}
-.wb.on.theta{background:rgba(167,139,250,.1);border-color:rgba(167,139,250,.4);color:var(--theta);}
-
-.wst{
-  font-size:9px;letter-spacing:2.5px;color:rgba(255,255,255,.08);
-  display:flex;align-items:center;gap:7px;height:14px;
-  transition:color 0.6s;text-transform:uppercase;
+.app-title {
+  font-size: 17px;
+  font-weight: 680;
+  letter-spacing: -0.03em;
+  color: var(--text);
+  text-wrap: balance;
 }
-.wd{width:4px;height:4px;border-radius:50%;background:currentColor;}
-.wst.beta{color:var(--beta);}.wst.alpha{color:var(--alpha);}.wst.theta{color:var(--theta);}
-
-.btn-row{display:flex;gap:10px;}
-.btn{
-  padding:15px 0;flex:1;font-size:11px;
-  letter-spacing:2.5px;text-transform:uppercase;font-weight:500;
-  border-radius:12px;cursor:pointer;
-  transition:all 0.18s;border:1px solid var(--border);
-  background:rgba(255,255,255,0.04);color:var(--dim);
-  min-width:120px;-webkit-tap-highlight-color:transparent;
+.app-subtitle {
+  font-size: 13px;
+  font-weight: 450;
+  color: var(--muted);
+  letter-spacing: -0.01em;
 }
-.btn:active{transform:scale(0.97);}
-.btn:hover{border-color:var(--hi);color:var(--fg);}
-.btn-start{
-  background:rgba(255,255,255,0.92);color:#000;
-  border-color:rgba(255,255,255,.9);
-  box-shadow:0 1px 0 rgba(255,255,255,.3) inset,0 6px 20px rgba(0,0,0,.4);
+
+/* ── Eyebrow ── */
+.eyebrow {
+  font-family: 'Courier New', monospace;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--dim);
+  line-height: 1.4;
+  margin-bottom: 10px;
 }
-.btn-start:hover{background:#fff;}
-.btn-start:disabled{opacity:0.28;cursor:default;pointer-events:none;}
-.btn-sr.armed{border-color:rgba(220,80,60,.5);color:rgba(220,80,60,.9);background:rgba(220,80,60,.07);}
 
-.mute-row{display:flex;justify-content:center;}
-.mbtn{
-  padding:8px 20px;border:1px solid var(--border);
-  background:transparent;color:var(--dim);
-  font-size:10px;letter-spacing:2px;text-transform:uppercase;
-  cursor:pointer;border-radius:20px;transition:all 0.2s;
-  -webkit-tap-highlight-color:transparent;
+/* ── Tabs ── */
+.tabs {
+  display: flex;
+  border-radius: 16px;
+  padding: 4px;
+  background: var(--surface);
+  box-shadow: inset 0 0 0 1px var(--ring);
+  margin-bottom: 32px;
 }
-.mbtn:hover{border-color:var(--hi);color:var(--fg);}
-.mbtn.muted{color:rgba(220,80,60,.7);border-color:rgba(220,80,60,.35);}
+.tab {
+  flex: 1;
+  border-radius: 12px;
+  min-height: 44px;
+  border: none;
+  background: transparent;
+  color: var(--muted);
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 550;
+  cursor: pointer;
+  transition: all 0.22s var(--ease);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+}
+.tab:active { transform: scale(0.97); }
+.tab.on {
+  background: rgba(255,255,255,0.09);
+  color: var(--text);
+  box-shadow: 0 1px 4px rgba(0,0,0,0.5), 0 0 0 1px var(--ring-outer);
+}
+.tab-icon {
+  font-size: 15px;
+  line-height: 1;
+}
 
-.rnd{font-size:9px;letter-spacing:2px;color:rgba(255,255,255,.08);min-height:14px;}
+/* ── Timer section ── */
+.timer-section {
+  margin-bottom: 24px;
+}
+.t-num-wrap {
+  position: relative;
+  display: inline-block;
+  cursor: ns-resize;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+  touch-action: none;
+  margin-bottom: 4px;
+}
+.t-num {
+  font-size: clamp(72px, 21vw, 108px);
+  font-weight: 220;
+  letter-spacing: -0.04em;
+  font-variant-numeric: tabular-nums;
+  color: var(--text);
+  line-height: 1.05;
+  transition: color 0.3s var(--ease);
+}
+.t-num.hl { color: var(--accent); }
+.t-colon {
+  opacity: 0.55;
+}
+.scroll-hint {
+  font-size: 11px;
+  color: var(--dim);
+  letter-spacing: 0.04em;
+  margin-top: 2px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+.scroll-hint-arrow {
+  font-size: 13px;
+  opacity: 0.55;
+}
 
-body.cm .t-num{animation:breathe 6s ease-in-out infinite;}
-@keyframes breathe{0%,100%{opacity:.45;}50%{opacity:.95;}}
+/* Break row */
+.break-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 14px;
+}
+.b-label {
+  font-size: 12px;
+  color: var(--muted);
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+}
+.b-track {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 16px;
+  border-radius: 9999px;
+  min-height: 44px;
+  background: var(--surface);
+  box-shadow: inset 0 0 0 1px var(--ring);
+  cursor: ns-resize;
+  user-select: none;
+  touch-action: none;
+  -webkit-tap-highlight-color: transparent;
+  transition: box-shadow 0.18s var(--ease);
+}
+.b-track:active {
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.10);
+}
+.b-icon {
+  font-size: 14px;
+  opacity: 0.55;
+}
+.b-val {
+  font-size: 14px;
+  font-variant-numeric: tabular-nums;
+  color: var(--text);
+  line-height: 2;
+}
+
+/* ── Divider ── */
+.divider {
+  height: 1px;
+  background: var(--divider);
+  margin: 22px 0;
+}
+
+/* ── Status row ── */
+.status-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+.phase-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.phase-pip {
+  width: 7px;
+  height: 7px;
+  border-radius: 9999px;
+  background: var(--accent);
+  flex-shrink: 0;
+  display: none;
+  box-shadow: 0 0 6px currentColor;
+  transition: background 0.3s var(--ease), box-shadow 0.3s var(--ease);
+}
+.phase-pip.visible {
+  display: block;
+}
+.phase-txt {
+  font-size: 13px;
+  color: var(--muted);
+  letter-spacing: 0.01em;
+}
+.rounds-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.rounds-eyebrow {
+  font-family: 'Courier New', monospace;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--dim);
+}
+.rounds-val {
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+  color: var(--muted);
+}
+
+/* ── Wave section ── */
+.wave-section {
+  margin-bottom: 0;
+}
+.wave-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin-bottom: 12px;
+}
+.wb {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  padding: 14px 14px 12px;
+  background: var(--surface);
+  box-shadow: inset 0 0 0 1px var(--ring);
+  border-radius: 14px;
+  border: none;
+  color: var(--muted);
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 550;
+  cursor: pointer;
+  transition: all 0.22s var(--ease);
+  text-align: left;
+  min-height: 44px;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+}
+.wb:active { transform: scale(0.97); }
+.wb-label {
+  font-family: 'Courier New', monospace;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.10em;
+  margin-bottom: 4px;
+  opacity: 0.65;
+}
+.wb-name {
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  line-height: 1.2;
+}
+.wb-hz {
+  font-size: 10px;
+  margin-top: 2px;
+  opacity: 0.6;
+}
+.wb.on.beta {
+  background: rgba(var(--accent-rgb),0.1);
+  box-shadow: inset 0 0 0 1px rgba(var(--accent-rgb),0.25), 0 0 0 1px rgba(var(--accent-rgb),0.10);
+  color: var(--accent);
+}
+.wb.on.alpha {
+  background: rgba(var(--alpha-rgb),0.1);
+  box-shadow: inset 0 0 0 1px rgba(var(--alpha-rgb),0.25), 0 0 0 1px rgba(var(--alpha-rgb),0.10);
+  color: var(--alpha);
+}
+.wb.on.theta {
+  background: rgba(var(--theta-rgb),0.1);
+  box-shadow: inset 0 0 0 1px rgba(var(--theta-rgb),0.25), 0 0 0 1px rgba(var(--theta-rgb),0.10);
+  color: var(--theta);
+}
+.wave-status {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 20px;
+}
+.wave-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 9999px;
+  background: var(--dim);
+  flex-shrink: 0;
+  transition: background 0.3s var(--ease), box-shadow 0.3s var(--ease);
+}
+.wave-dot.active {
+  background: var(--accent);
+  box-shadow: 0 0 5px var(--accent);
+}
+#waveTxt {
+  font-size: 12px;
+  color: var(--dim);
+  letter-spacing: 0.01em;
+}
+
+/* ── Controls ── */
+.controls {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.controls-row {
+  display: flex;
+  gap: 8px;
+  align-items: stretch;
+}
+.btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  padding: 0 24px;
+  height: calc(2.8em);
+  min-height: 44px;
+  border-radius: 9999px;
+  border: none;
+  background: rgba(255,255,255,0.05);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.08);
+  color: var(--muted);
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 550;
+  cursor: pointer;
+  transition: all 0.18s var(--ease-fast);
+  white-space: nowrap;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+}
+.btn:active { transform: scale(0.97); }
+.btn:hover:not(:active) {
+  background: rgba(255,255,255,0.07);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.12);
+  color: var(--text);
+}
+
+.btn-mute {
+  width: 44px;
+  padding: 0;
+  flex-shrink: 0;
+  font-size: 17px;
+}
+
+.btn-start {
+  flex: 1;
+  background: rgba(255,255,255,0.93);
+  color: #0a0a0c;
+  font-weight: 650;
+  box-shadow:
+    0 0 0 1px rgba(255,255,255,0.12),
+    0 4px 20px rgba(0,0,0,0.4),
+    inset 0 1px 0 rgba(255,255,255,0.35);
+}
+.btn-start:hover:not(:active) {
+  background: rgba(255,255,255,0.98);
+  box-shadow:
+    0 0 0 1px rgba(255,255,255,0.18),
+    0 6px 24px rgba(0,0,0,0.45),
+    inset 0 1px 0 rgba(255,255,255,0.5);
+  color: #0a0a0c;
+}
+
+.btn-sr {
+  min-width: 80px;
+  transition: all 0.18s var(--ease-fast), background 0.25s var(--ease), color 0.25s var(--ease);
+}
+.btn-sr.armed {
+  background: var(--red-bg);
+  color: var(--red);
+  box-shadow: inset 0 0 0 1px var(--red-ring);
+}
+.btn-sr.armed:hover:not(:active) {
+  background: rgba(220,70,55,0.14);
+  color: var(--red);
+}
+
+/* ── Breathing animation (meditate mode) ── */
+.breathing-ring {
+  display: none;
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 180px;
+  height: 180px;
+  border-radius: 9999px;
+  background: transparent;
+  box-shadow:
+    0 0 0 1px rgba(167,139,250,0.15),
+    0 0 60px rgba(167,139,250,0.08);
+  pointer-events: none;
+  z-index: 0;
+}
+.breathing-ring.active {
+  display: block;
+  animation: breathe 8s ease-in-out infinite;
+}
+@keyframes breathe {
+  0%, 100% { transform: translate(-50%, -50%) scale(1); opacity: 0.5; }
+  50% { transform: translate(-50%, -50%) scale(1.35); opacity: 0.9; }
+}
+
+/* app content sits above breathing ring */
+.app { position: relative; z-index: 1; }
+
+/* ── Progress / running indicator on timer ── */
+.t-num-wrap.running .t-num {
+  animation: timerPulse 2s ease-in-out infinite;
+}
+@keyframes timerPulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.75; }
+}
+
+/* scrollbar for webkit */
+::-webkit-scrollbar { width: 0; }
+
 </style>
 </head>
 <body>
 
-<div class="app-label">Focus Timer</div>
+<div class="breathing-ring" id="breathingRing"></div>
 
-<div class="tabs">
-  <button class="tab on" id="tabFocus" onclick="setMode('focus')">Focus</button>
-  <button class="tab" id="tabMed" onclick="setMode('meditate')">Meditate</button>
-</div>
+<div class="app">
 
-<div class="timer-area">
-  <div class="t-track" id="mainTrack">
-    <div class="t-num" id="dispNum">40:00</div>
+  <!-- Header -->
+  <div class="header">
+    <span class="app-title">Focus Timer</span>
+    <span class="app-subtitle">binaural beats + pomodoro</span>
   </div>
-  <div id="breakWrap">
-    <div class="b-track" id="breakTrack">
-      <span class="b-lbl">Break</span>
-      <span class="b-val" id="breakNum">10 min</span>
+
+  <!-- Tabs -->
+  <div class="tabs" role="tablist">
+    <button class="tab on" id="tabFocus" role="tab" aria-selected="true" aria-controls="focusPanel">
+      <span class="tab-icon">◎</span> Focus
+    </button>
+    <button class="tab" id="tabMed" role="tab" aria-selected="false" aria-controls="meditatePanel">
+      <span class="tab-icon">◌</span> Meditate
+    </button>
+  </div>
+
+  <!-- Timer section -->
+  <div class="timer-section">
+    <div class="eyebrow" id="timerEyebrow">Work Duration</div>
+    <div class="t-num-wrap" id="mainTrack" aria-label="Timer: drag up/down to set minutes">
+      <div class="t-num" id="dispNum">25<span class="t-colon">:</span>00</div>
+    </div>
+    <div class="scroll-hint" id="hint">
+      <span class="scroll-hint-arrow">↕</span>
+      <span>drag or scroll to adjust</span>
+    </div>
+
+    <!-- Break row (focus only) -->
+    <div class="break-row" id="breakRow">
+      <span class="b-label">Break</span>
+      <div class="b-track" id="breakTrack" aria-label="Break duration: drag to adjust">
+        <span class="b-icon">☕</span>
+        <span class="b-val" id="breakNum">5 min</span>
+      </div>
     </div>
   </div>
-  <div class="scroll-hint" id="hint">scroll or drag to set time</div>
-  <div class="phase" id="phaseEl"></div>
+
+  <!-- Divider -->
+  <div class="divider"></div>
+
+  <!-- Status row -->
+  <div class="status-row">
+    <div class="phase-wrap" id="phaseEl">
+      <span class="phase-pip" id="phasePip"></span>
+      <span class="phase-txt" id="phaseTxt">Ready</span>
+    </div>
+    <div class="rounds-wrap">
+      <span class="rounds-eyebrow">Rounds</span>
+      <span class="rounds-val" id="rndEl">0 rnd · 0 pts</span>
+    </div>
+  </div>
+
+  <!-- Divider -->
+  <div class="divider"></div>
+
+  <!-- Wave section -->
+  <div class="wave-section">
+    <div class="eyebrow">Binaural Waves</div>
+    <div class="wave-grid">
+      <button class="wb beta on" id="waveB" aria-pressed="true">
+        <span class="wb-label">Beta</span>
+        <span class="wb-name">Focus</span>
+        <span class="wb-hz">14–30 Hz</span>
+      </button>
+      <button class="wb alpha" id="waveA" aria-pressed="false">
+        <span class="wb-label">Alpha</span>
+        <span class="wb-name">Relax</span>
+        <span class="wb-hz">8–13 Hz</span>
+      </button>
+      <button class="wb theta" id="waveTheta" aria-pressed="false">
+        <span class="wb-label">Theta</span>
+        <span class="wb-name">Deep</span>
+        <span class="wb-hz">4–7 Hz</span>
+      </button>
+    </div>
+    <div class="wave-status">
+      <span class="wave-dot" id="waveDot"></span>
+      <span id="waveTxt">Waves off</span>
+    </div>
+  </div>
+
+  <!-- Divider -->
+  <div class="divider"></div>
+
+  <!-- Controls -->
+  <div class="controls">
+    <div class="controls-row">
+      <button class="btn btn-mute" id="muteBtn" aria-label="Mute/unmute">🔔</button>
+      <button class="btn btn-start" id="btnStart">Start</button>
+      <button class="btn btn-sr" id="btnSR">Stop</button>
+    </div>
+  </div>
+
 </div>
-
-<div class="wave-row">
-  <button class="wb beta on" id="waveBeta" onclick="pickWave('beta',this)">
-    <span class="wn">Beta</span><span class="ws">25 Hz · Focus</span>
-  </button>
-  <button class="wb alpha" id="waveAlpha" onclick="pickWave('alpha',this)">
-    <span class="wn">Alpha</span><span class="ws">12 Hz · Relax</span>
-  </button>
-  <button class="wb theta" id="waveTheta" onclick="pickWave('theta',this)">
-    <span class="wn">Theta</span><span class="ws">7 Hz · Meditate</span>
-  </button>
-</div>
-
-<div class="wst" id="waveStatus"><span class="wd"></span><span id="waveTxt">Sound off</span></div>
-
-<div class="btn-row">
-  <button class="btn btn-start" id="btnStart" onclick="go()">Start</button>
-  <button class="btn btn-sr" id="btnSR" onclick="sr()">Stop</button>
-</div>
-
-<div class="mute-row">
-  <button class="mbtn" id="muteBtn" onclick="toggleMute()">🎧 Sound On</button>
-</div>
-
-<div class="rnd" id="rndEl"></div>
 
 <script>
-// ── State ────────────────────────────────────────
-let appMode = 'focus';
-let workMin = 40, breakMin = 10, medMin = 20;
-let seconds = workMin * 60;
-let isRunning = false, isBreak = false;
-let ticker = null, rounds = 0, pts = 0;
-let isMuted = false, selectedWave = 'beta';
-let srArmed = false, srTimer = null;
+(function () {
+  'use strict';
 
-// ── Audio ─────────────────────────────────────────
-let audioCtx = null, gainNode = null, oscL = null, oscR = null;
+  // ── State ──────────────────────────────────────────────────────────────────
+  let isMedMode = false;
+  let timerMin = 25;
+  let breakMin = 5;
+  let isRunning = false;
+  let isBreak = false;
+  let remaining = 0;
+  let intervalId = null;
+  let rounds = 0;
+  let pts = 0;
+  let muted = false;
+  let currentWave = 'beta';
+  let audioCtx = null;
+  let oscLeft = null, oscRight = null, gainNode = null;
+  let wakeLock = null;
+  let srArmed = false;
+  let srTimer = null;
 
-function ensureAudio() {
-  if (audioCtx) return;
-  audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-  gainNode = audioCtx.createGain();
-  gainNode.gain.value = isMuted ? 0 : 0.18;
-  gainNode.connect(audioCtx.destination);
-}
-
-function playBeat(type) {
-  ensureAudio();
-  stopBeat(false);
-  const hz = { beta: 25, alpha: 12, theta: 7 }[type] || 12;
-  const base = 200;
-  const merger = audioCtx.createChannelMerger(2);
-  oscL = audioCtx.createOscillator();
-  oscR = audioCtx.createOscillator();
-  oscL.type = oscR.type = 'sine';
-  oscL.frequency.value = base;
-  oscR.frequency.value = base + hz;
-  const gL = audioCtx.createGain(), gR = audioCtx.createGain();
-  gL.gain.value = gR.gain.value = 0.5;
-  oscL.connect(gL); oscR.connect(gR);
-  gL.connect(merger, 0, 0);
-  gR.connect(merger, 0, 1);
-  merger.connect(gainNode);
-  oscL.start(); oscR.start();
-  updateWaveUI(type);
-}
-
-function stopBeat(clearUI = true) {
-  [oscL, oscR].forEach(o => { try { o && o.stop(); } catch (e) {} });
-  oscL = oscR = null;
-  if (clearUI) {
-    document.getElementById('waveStatus').className = 'wst';
-    document.getElementById('waveTxt').textContent = 'Sound off';
-  }
-}
-
-function updateWaveUI(type) {
-  document.getElementById('waveStatus').className = 'wst ' + type;
-  const map = { beta: 'Beta 25 Hz', alpha: 'Alpha 12 Hz', theta: 'Theta 7 Hz' };
-  document.getElementById('waveTxt').textContent = map[type] + ' · Playing';
-}
-
-function toggleMute() {
-  isMuted = !isMuted;
-  const btn = document.getElementById('muteBtn');
-  btn.textContent = isMuted ? '🔇 Muted' : '🎧 Sound On';
-  btn.classList.toggle('muted', isMuted);
-  if (gainNode) gainNode.gain.value = isMuted ? 0 : 0.18;
-}
-
-// ── Wave ──────────────────────────────────────────
-function pickWave(type, el) {
-  selectedWave = type;
-  document.querySelectorAll('.wb').forEach(b => b.classList.remove('on', 'beta', 'alpha', 'theta'));
-  el.classList.add('on', type);
-  if (isRunning && !isBreak && appMode === 'focus') playBeat(type);
-}
-
-// ── Mode ──────────────────────────────────────────
-function setMode(mode) {
-  fullStop();
-  appMode = mode;
-  document.getElementById('tabFocus').classList.toggle('on', mode === 'focus');
-  document.getElementById('tabMed').classList.toggle('on', mode === 'meditate');
-  document.getElementById('breakWrap').style.display = mode === 'focus' ? 'block' : 'none';
-  document.body.className = mode === 'meditate' ? 'cm' : '';
-
-  if (mode === 'meditate') {
-    seconds = medMin * 60;
-    document.querySelectorAll('.wb').forEach(b => b.classList.remove('on', 'beta', 'alpha', 'theta'));
-    document.getElementById('waveTheta').classList.add('on', 'theta');
-    selectedWave = 'theta';
-  } else {
-    seconds = workMin * 60;
-  }
-  render();
-  setPhase('');
-}
-
-// ── Scroll / Drag ─────────────────────────────────
-function adjustMain(delta) {
-  if (isRunning) return;
-  if (appMode === 'meditate') medMin = clamp(medMin + delta, 1, 180);
-  else workMin = clamp(workMin + delta, 1, 240);
-  seconds = (appMode === 'meditate' ? medMin : workMin) * 60;
-  render();
-  flashEl(document.getElementById('dispNum'));
-  document.getElementById('hint').style.opacity = '0';
-}
-
-function adjustBreak(delta) {
-  if (isRunning) return;
-  breakMin = clamp(breakMin + delta, 1, 60);
-  render();
-  flashEl(document.getElementById('breakTrack'));
-}
-
-function clamp(v, min, max) { return Math.min(max, Math.max(min, v)); }
-
-function flashEl(el) {
-  el.classList.add('hl');
-  clearTimeout(el._ft);
-  el._ft = setTimeout(() => el.classList.remove('hl'), 600);
-}
-
-// Wheel
-let accMain = 0, accBreak = 0;
-function onWheelMain(e) {
-  e.preventDefault();
-  accMain -= e.deltaY * (e.deltaMode === 1 ? 4 : 0.05);
-  const s = Math.trunc(accMain);
-  if (s) { adjustMain(s); accMain -= s; }
-}
-function onWheelBreak(e) {
-  e.preventDefault();
-  accBreak -= e.deltaY * (e.deltaMode === 1 ? 4 : 0.05);
-  const s = Math.trunc(accBreak);
-  if (s) { adjustBreak(s); accBreak -= s; }
-}
-
-// Mouse drag
-function makeDrag(adjustFn) {
-  return function(e) {
-    if (e.button !== 0) return;
-    let acc = 0, lastY = e.clientY;
-    const onMove = ev => {
-      acc += lastY - ev.clientY;
-      lastY = ev.clientY;
-      const steps = Math.trunc(acc / 10);
-      if (steps) { adjustFn(steps); acc -= steps * 10; }
-    };
-    const onUp = () => {
-      window.removeEventListener('mousemove', onMove);
-      window.removeEventListener('mouseup', onUp);
-    };
-    window.addEventListener('mousemove', onMove);
-    window.addEventListener('mouseup', onUp);
+  const WAVES = {
+    beta:  { carrier: 200, beat: 20,  name: 'Beta · 20 Hz · Focus' },
+    alpha: { carrier: 200, beat: 10,  name: 'Alpha · 10 Hz · Relax' },
+    theta: { carrier: 200, beat: 6,   name: 'Theta · 6 Hz · Deep' }
   };
-}
 
-// Touch drag
-function makeTouch(adjustFn) {
-  return function(e) {
-    let acc = 0, lastY = e.touches[0].clientY;
-    const onMove = ev => {
-      acc += lastY - ev.touches[0].clientY;
-      lastY = ev.touches[0].clientY;
-      const steps = Math.trunc(acc / 10);
-      if (steps) { adjustFn(steps); acc -= steps * 10; }
-    };
-    const onEnd = () => {
-      window.removeEventListener('touchmove', onMove);
-      window.removeEventListener('touchend', onEnd);
-    };
-    window.addEventListener('touchmove', onMove, { passive: false });
-    window.addEventListener('touchend', onEnd);
-  };
-}
+  // ── Elements ───────────────────────────────────────────────────────────────
+  const dispNum     = document.getElementById('dispNum');
+  const mainTrack   = document.getElementById('mainTrack');
+  const breakNumEl  = document.getElementById('breakNum');
+  const breakTrack  = document.getElementById('breakTrack');
+  const breakRow    = document.getElementById('breakRow');
+  const btnStart    = document.getElementById('btnStart');
+  const btnSR       = document.getElementById('btnSR');
+  const muteBtn     = document.getElementById('muteBtn');
+  const rndEl       = document.getElementById('rndEl');
+  const hintEl      = document.getElementById('hint');
+  const tabFocus    = document.getElementById('tabFocus');
+  const tabMed      = document.getElementById('tabMed');
+  const phasePip    = document.getElementById('phasePip');
+  const phaseTxt    = document.getElementById('phaseTxt');
+  const waveB       = document.getElementById('waveB');
+  const waveA       = document.getElementById('waveA');
+  const waveTheta   = document.getElementById('waveTheta');
+  const waveDot     = document.getElementById('waveDot');
+  const waveTxtEl   = document.getElementById('waveTxt');
+  const timerEyebrow = document.getElementById('timerEyebrow');
+  const breathRing  = document.getElementById('breathingRing');
 
-// Attach events after DOM ready
-document.getElementById('mainTrack').addEventListener('wheel', onWheelMain, { passive: false });
-document.getElementById('mainTrack').addEventListener('mousedown', makeDrag(adjustMain));
-document.getElementById('mainTrack').addEventListener('touchstart', makeTouch(adjustMain));
-document.getElementById('breakTrack').addEventListener('wheel', onWheelBreak, { passive: false });
-document.getElementById('breakTrack').addEventListener('mousedown', makeDrag(adjustBreak));
-document.getElementById('breakTrack').addEventListener('touchstart', makeTouch(adjustBreak));
-
-// ── Timer ─────────────────────────────────────────
-function go() {
-  if (isRunning) return;
-  isRunning = true;
-  document.getElementById('btnStart').disabled = true;
-  document.getElementById('btnStart').textContent = 'Running';
-  document.getElementById('hint').style.display = 'none';
-  srArmed = false;
-  document.getElementById('btnSR').textContent = 'Stop';
-  document.getElementById('btnSR').classList.remove('armed');
-
-  if (appMode === 'meditate') {
-    seconds = medMin * 60;
-    document.body.className = 'cm';
-    setPhase('Meditate'); document.getElementById('phaseEl').style.color = 'rgba(167,139,250,.7)';
-    playBeat('theta');
-  } else if (!isBreak) {
-    seconds = workMin * 60;
-    document.body.className = 'cf';
-    setPhase('Focus'); document.getElementById('phaseEl').style.color = 'rgba(91,156,246,.7)';
-    playBeat(selectedWave);
-  } else {
-    seconds = breakMin * 60;
-    document.body.className = 'cb';
-    setPhase('Break'); document.getElementById('phaseEl').style.color = 'rgba(82,201,126,.7)';
-    playBeat('alpha');
+  // ── Display helpers ────────────────────────────────────────────────────────
+  function fmtTime(totalSec) {
+    const m = Math.floor(totalSec / 60);
+    const s = totalSec % 60;
+    return `${String(m).padStart(2,'0')}<span class="t-colon">:</span>${String(s).padStart(2,'0')}`;
   }
 
-  ticker = setInterval(tickFn, 1000);
-}
-
-function tickFn() {
-  seconds--;
-  render();
-  if (seconds > 0) return;
-  clearInterval(ticker); ticker = null;
-
-  if (appMode === 'meditate') { done(); return; }
-
-  if (!isBreak) {
-    rounds++; pts += workMin;
-    document.getElementById('rndEl').textContent = rounds + ' rounds · ' + pts + ' pts';
-    isBreak = true;
-    seconds = breakMin * 60;
-    document.body.className = 'cb';
-    setPhase('Break'); document.getElementById('phaseEl').style.color = 'rgba(82,201,126,.7)';
-    playBeat('alpha');
-    ticker = setInterval(tickFn, 1000);
-  } else {
-    isBreak = false;
-    done();
-  }
-}
-
-function done() {
-  isRunning = false;
-  stopBeat();
-  document.body.className = appMode === 'meditate' ? 'cm' : '';
-  setPhase('Done ✓'); document.getElementById('phaseEl').style.color = 'rgba(255,255,255,.4)';
-  document.getElementById('btnStart').disabled = false;
-  document.getElementById('btnStart').textContent = 'Start';
-  document.getElementById('btnSR').textContent = 'Stop';
-  document.getElementById('btnSR').classList.remove('armed');
-  srArmed = false;
-  seconds = appMode === 'meditate' ? medMin * 60 : workMin * 60;
-  render();
-  document.getElementById('hint').style.display = 'flex';
-  document.getElementById('hint').style.opacity = '1';
-}
-
-function fullStop() {
-  isRunning = false; isBreak = false;
-  clearInterval(ticker); ticker = null;
-  clearTimeout(srTimer); srTimer = null;
-  stopBeat(); srArmed = false;
-  document.body.className = '';
-  document.getElementById('btnStart').disabled = false;
-  document.getElementById('btnStart').textContent = 'Start';
-  document.getElementById('btnSR').textContent = 'Stop';
-  document.getElementById('btnSR').classList.remove('armed');
-  document.getElementById('hint').style.display = 'flex';
-  document.getElementById('hint').style.opacity = '1';
-}
-
-function sr() {
-  if (!srArmed) {
+  function updateDisp() {
     if (isRunning) {
-      isRunning = false;
-      clearInterval(ticker); ticker = null;
-      stopBeat();
-      document.body.className = appMode === 'meditate' ? 'cm' : '';
-      document.getElementById('btnStart').disabled = false;
-      document.getElementById('btnStart').textContent = 'Start';
-      setPhase('Stopped'); document.getElementById('phaseEl').style.color = 'rgba(255,255,255,.25)';
-      srArmed = true;
-      document.getElementById('btnSR').textContent = 'Reset';
-      document.getElementById('btnSR').classList.add('armed');
-      srTimer = setTimeout(() => {
-        srArmed = false;
-        document.getElementById('btnSR').textContent = 'Stop';
-        document.getElementById('btnSR').classList.remove('armed');
-      }, 4000);
+      dispNum.innerHTML = fmtTime(remaining);
+    } else {
+      dispNum.innerHTML = `${String(timerMin).padStart(2,'0')}<span class="t-colon">:</span>00`;
     }
-  } else {
-    clearTimeout(srTimer);
-    isBreak = false;
-    seconds = appMode === 'meditate' ? medMin * 60 : workMin * 60;
-    render();
-    setPhase(''); document.getElementById('phaseEl').style.color = '';
-    srArmed = false;
-    document.getElementById('btnSR').textContent = 'Stop';
-    document.getElementById('btnSR').classList.remove('armed');
-    document.getElementById('hint').style.display = 'flex';
-    document.getElementById('hint').style.opacity = '1';
   }
-}
 
-// ── Render ────────────────────────────────────────
-function pad(n) { return String(n).padStart(2, '0'); }
+  function setPhase(text, color) {
+    phaseTxt.textContent = text;
+    if (color) {
+      phasePip.style.background = color;
+      phasePip.style.boxShadow = `0 0 6px ${color}`;
+      phasePip.classList.add('visible');
+    } else {
+      phasePip.classList.remove('visible');
+    }
+  }
 
-function render() {
-  const v = isRunning ? seconds : (appMode === 'meditate' ? medMin * 60 : (!isBreak ? workMin * 60 : breakMin * 60));
-  document.getElementById('dispNum').textContent = pad(Math.floor(v / 60)) + ':' + pad(v % 60);
-  document.getElementById('breakNum').textContent = breakMin + ' min';
-}
+  function updateRnd() {
+    rndEl.textContent = `${rounds} rnd · ${pts} pts`;
+  }
 
-function setPhase(t) { document.getElementById('phaseEl').textContent = t; }
+  function updateBreakDisp() {
+    breakNumEl.textContent = `${breakMin} min`;
+  }
 
-// ── Wake Lock ─────────────────────────────────────
-let wakeLock = null;
-async function reqWake() {
-  try { if ('wakeLock' in navigator) wakeLock = await navigator.wakeLock.request('screen'); } catch (e) {}
-}
-async function relWake() {
-  try { if (wakeLock) { await wakeLock.release(); wakeLock = null; } } catch (e) {}
-}
-document.getElementById('btnStart').addEventListener('click', reqWake);
-document.getElementById('btnSR').addEventListener('click', relWake);
+  // ── Mode switching ─────────────────────────────────────────────────────────
+  function setMode(med) {
+    isMedMode = med;
+    tabFocus.classList.toggle('on', !med);
+    tabFocus.setAttribute('aria-selected', String(!med));
+    tabMed.classList.toggle('on', med);
+    tabMed.setAttribute('aria-selected', String(med));
 
-render();
+    breakRow.style.display = med ? 'none' : 'flex';
+
+    if (med) {
+      timerEyebrow.textContent = 'Session Duration';
+      document.body.classList.add('cm');
+      document.body.classList.remove('cf','cb');
+      breathRing.classList.add('active');
+      if (isRunning) breathRing.classList.add('active');
+    } else {
+      timerEyebrow.textContent = 'Work Duration';
+      document.body.classList.remove('cm');
+      breathRing.classList.remove('active');
+    }
+
+    if (!isRunning) {
+      timerMin = med ? 15 : 25;
+      updateDisp();
+    }
+  }
+
+  tabFocus.addEventListener('click', () => { if (isRunning) return; setMode(false); });
+  tabMed.addEventListener('click', () => { if (isRunning) return; setMode(true); });
+
+  // ── Drag / scroll for main timer ──────────────────────────────────────────
+  let dragStartY = null;
+  let dragBase = null;
+  const STEP_PX = 8;
+  const STEP_TOUCH = 7;
+
+  function clampMin(val) {
+    return Math.max(1, Math.min(180, val));
+  }
+
+  mainTrack.addEventListener('wheel', (e) => {
+    if (isRunning) return;
+    e.preventDefault();
+    const delta = e.deltaY > 0 ? -1 : 1;
+    timerMin = clampMin(timerMin + delta);
+    updateDisp();
+  }, { passive: false });
+
+  mainTrack.addEventListener('mousedown', (e) => {
+    if (isRunning) return;
+    dragStartY = e.clientY;
+    dragBase = timerMin;
+    document.addEventListener('mousemove', onMouseMove);
+    document.addEventListener('mouseup', onMouseUp);
+  });
+
+  function onMouseMove(e) {
+    const dy = dragStartY - e.clientY;
+    const steps = Math.round(dy / STEP_PX);
+    timerMin = clampMin(dragBase + steps);
+    updateDisp();
+  }
+
+  function onMouseUp() {
+    document.removeEventListener('mousemove', onMouseMove);
+    document.removeEventListener('mouseup', onMouseUp);
+  }
+
+  mainTrack.addEventListener('touchstart', (e) => {
+    if (isRunning) return;
+    dragStartY = e.touches[0].clientY;
+    dragBase = timerMin;
+  }, { passive: true });
+
+  mainTrack.addEventListener('touchmove', (e) => {
+    if (isRunning) return;
+    const dy = dragStartY - e.touches[0].clientY;
+    const steps = Math.round(dy / STEP_TOUCH);
+    timerMin = clampMin(dragBase + steps);
+    updateDisp();
+  }, { passive: true });
+
+  // ── Drag for break track ───────────────────────────────────────────────────
+  let bDragStartY = null;
+  let bDragBase = null;
+
+  breakTrack.addEventListener('wheel', (e) => {
+    if (isRunning) return;
+    e.preventDefault();
+    const delta = e.deltaY > 0 ? -1 : 1;
+    breakMin = Math.max(1, Math.min(60, breakMin + delta));
+    updateBreakDisp();
+  }, { passive: false });
+
+  breakTrack.addEventListener('mousedown', (e) => {
+    if (isRunning) return;
+    bDragStartY = e.clientY;
+    bDragBase = breakMin;
+    document.addEventListener('mousemove', onBMouseMove);
+    document.addEventListener('mouseup', onBMouseUp);
+  });
+
+  function onBMouseMove(e) {
+    const dy = bDragStartY - e.clientY;
+    const steps = Math.round(dy / STEP_PX);
+    breakMin = Math.max(1, Math.min(60, bDragBase + steps));
+    updateBreakDisp();
+  }
+
+  function onBMouseUp() {
+    document.removeEventListener('mousemove', onBMouseMove);
+    document.removeEventListener('mouseup', onBMouseUp);
+  }
+
+  breakTrack.addEventListener('touchstart', (e) => {
+    if (isRunning) return;
+    bDragStartY = e.touches[0].clientY;
+    bDragBase = breakMin;
+  }, { passive: true });
+
+  breakTrack.addEventListener('touchmove', (e) => {
+    if (isRunning) return;
+    const dy = bDragStartY - e.touches[0].clientY;
+    const steps = Math.round(dy / STEP_TOUCH);
+    breakMin = Math.max(1, Math.min(60, bDragBase + steps));
+    updateBreakDisp();
+  }, { passive: true });
+
+  // ── Audio ──────────────────────────────────────────────────────────────────
+  function initAudio() {
+    if (!audioCtx) {
+      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    }
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+  }
+
+  function startWaves() {
+    initAudio();
+    stopWaves();
+    const w = WAVES[currentWave];
+    gainNode = audioCtx.createGain();
+    gainNode.gain.value = muted ? 0 : 0.08;
+
+    const merger = audioCtx.createChannelMerger(2);
+    merger.connect(gainNode);
+    gainNode.connect(audioCtx.destination);
+
+    oscLeft = audioCtx.createOscillator();
+    oscLeft.type = 'sine';
+    oscLeft.frequency.value = w.carrier;
+
+    oscRight = audioCtx.createOscillator();
+    oscRight.type = 'sine';
+    oscRight.frequency.value = w.carrier + w.beat;
+
+    const panL = audioCtx.createStereoPanner();
+    panL.pan.value = -1;
+    const panR = audioCtx.createStereoPanner();
+    panR.pan.value = 1;
+
+    oscLeft.connect(panL).connect(merger, 0, 0);
+    oscRight.connect(panR).connect(merger, 0, 1);
+
+    oscLeft.start();
+    oscRight.start();
+
+    waveDot.classList.add('active');
+    const wClass = currentWave;
+    if (wClass === 'beta') {
+      waveDot.style.background = 'var(--accent)';
+      waveDot.style.boxShadow = '0 0 5px var(--accent)';
+    } else if (wClass === 'alpha') {
+      waveDot.style.background = 'var(--alpha)';
+      waveDot.style.boxShadow = '0 0 5px var(--alpha)';
+    } else {
+      waveDot.style.background = 'var(--theta)';
+      waveDot.style.boxShadow = '0 0 5px var(--theta)';
+    }
+    waveTxtEl.textContent = w.name;
+  }
+
+  function stopWaves() {
+    if (oscLeft) { try { oscLeft.stop(); } catch(e){} oscLeft = null; }
+    if (oscRight) { try { oscRight.stop(); } catch(e){} oscRight = null; }
+    if (gainNode) { gainNode = null; }
+    waveDot.classList.remove('active');
+    waveDot.style.background = '';
+    waveDot.style.boxShadow = '';
+    waveTxtEl.textContent = 'Waves off';
+  }
+
+  // ── Wave buttons ───────────────────────────────────────────────────────────
+  function selectWave(id) {
+    currentWave = id;
+    [waveB, waveA, waveTheta].forEach(btn => {
+      btn.classList.remove('on');
+      btn.setAttribute('aria-pressed', 'false');
+    });
+    const map = { beta: waveB, alpha: waveA, theta: waveTheta };
+    map[id].classList.add('on');
+    map[id].setAttribute('aria-pressed', 'true');
+    if (isRunning && !muted) {
+      startWaves();
+    }
+  }
+
+  waveB.addEventListener('click', () => selectWave('beta'));
+  waveA.addEventListener('click', () => selectWave('alpha'));
+  waveTheta.addEventListener('click', () => selectWave('theta'));
+
+  // ── Mute ──────────────────────────────────────────────────────────────────
+  muteBtn.addEventListener('click', () => {
+    muted = !muted;
+    muteBtn.textContent = muted ? '🔕' : '🔔';
+    muteBtn.setAttribute('aria-label', muted ? 'Unmute' : 'Mute');
+    if (gainNode) {
+      gainNode.gain.setTargetAtTime(muted ? 0 : 0.08, audioCtx.currentTime, 0.05);
+    }
+  });
+
+  // ── Wake Lock ──────────────────────────────────────────────────────────────
+  async function requestWakeLock() {
+    if ('wakeLock' in navigator) {
+      try { wakeLock = await navigator.wakeLock.request('screen'); } catch(e) {}
+    }
+  }
+
+  function releaseWakeLock() {
+    if (wakeLock) { wakeLock.release(); wakeLock = null; }
+  }
+
+  // ── Background phase tint ──────────────────────────────────────────────────
+  function setBodyPhase() {
+    document.body.classList.remove('cf','cb','cm');
+    if (isMedMode) {
+      document.body.classList.add('cm');
+    } else if (isBreak) {
+      document.body.classList.add('cb');
+    } else if (isRunning) {
+      document.body.classList.add('cf');
+    }
+  }
+
+  // ── Timer logic ────────────────────────────────────────────────────────────
+  function startTimer() {
+    clearSrArm();
+    remaining = timerMin * 60;
+    isRunning = true;
+    isBreak = false;
+
+    btnStart.textContent = 'Pause';
+    btnSR.textContent = 'Stop';
+    btnSR.classList.remove('armed');
+    hintEl.style.opacity = '0';
+    mainTrack.classList.add('running');
+
+    if (isMedMode) {
+      setPhase('Meditating', 'var(--alpha)');
+      breathRing.classList.add('active');
+    } else {
+      setPhase('Focus', 'var(--accent)');
+    }
+
+    setBodyPhase();
+    requestWakeLock();
+    if (!muted) startWaves();
+
+    intervalId = setInterval(tick, 1000);
+  }
+
+  function pauseTimer() {
+    clearInterval(intervalId);
+    intervalId = null;
+    btnStart.textContent = 'Resume';
+    setPhase('Paused', 'rgba(255,255,255,0.35)');
+  }
+
+  function resumeTimer() {
+    btnStart.textContent = 'Pause';
+    if (isBreak) {
+      setPhase('Break', 'var(--theta)');
+    } else if (isMedMode) {
+      setPhase('Meditating', 'var(--alpha)');
+    } else {
+      setPhase('Focus', 'var(--accent)');
+    }
+    intervalId = setInterval(tick, 1000);
+  }
+
+  function stopTimer() {
+    clearInterval(intervalId);
+    intervalId = null;
+    isRunning = false;
+    isBreak = false;
+    stopWaves();
+    releaseWakeLock();
+    mainTrack.classList.remove('running');
+    breathRing.classList.remove('active');
+
+    btnStart.textContent = 'Start';
+    btnSR.textContent = 'Stop';
+    btnSR.classList.remove('armed');
+    hintEl.style.opacity = '1';
+    setPhase('Ready', null);
+    setBodyPhase();
+    updateDisp();
+  }
+
+  function tick() {
+    if (remaining <= 0) {
+      onPhaseEnd();
+      return;
+    }
+    remaining--;
+    updateDisp();
+
+    // pulse timer number on last 10s of focus
+    if (!isBreak && remaining <= 10 && remaining > 0) {
+      dispNum.style.color = 'var(--accent)';
+    } else {
+      dispNum.style.color = '';
+    }
+  }
+
+  function onPhaseEnd() {
+    clearInterval(intervalId);
+    intervalId = null;
+
+    if (!isBreak && !isMedMode) {
+      // end of focus → start break
+      rounds++;
+      pts += timerMin;
+      updateRnd();
+
+      isBreak = true;
+      remaining = breakMin * 60;
+      setPhase('Break', 'var(--theta)');
+      setBodyPhase();
+      updateDisp();
+
+      // switch to theta during break
+      if (!muted) {
+        const prevWave = currentWave;
+        selectWaveAudio('theta');
+        setTimeout(() => {
+          if (!isRunning) return;
+          selectWaveAudio(prevWave);
+        }, breakMin * 60 * 1000);
+      }
+
+      intervalId = setInterval(tick, 1000);
+    } else if (isBreak) {
+      // end of break → reset to focus
+      isBreak = false;
+      stopTimer();
+      setPhase('Break done — ready!', null);
+    } else {
+      // meditate session end
+      rounds++;
+      pts += timerMin;
+      updateRnd();
+      stopTimer();
+      setPhase('Session complete', null);
+    }
+  }
+
+  function selectWaveAudio(id) {
+    currentWave = id;
+    if (isRunning && !muted) startWaves();
+  }
+
+  // ── Btn Start ──────────────────────────────────────────────────────────────
+  btnStart.addEventListener('click', () => {
+    if (!isRunning) {
+      startTimer();
+    } else if (intervalId) {
+      pauseTimer();
+    } else {
+      resumeTimer();
+    }
+  });
+
+  // ── Btn Stop/Reset ─────────────────────────────────────────────────────────
+  btnSR.addEventListener('click', () => {
+    if (!isRunning) return;
+    if (!srArmed) {
+      armSR();
+    } else {
+      // confirmed reset
+      clearSrArm();
+      stopTimer();
+    }
+  });
+
+  function armSR() {
+    srArmed = true;
+    btnSR.textContent = 'Reset?';
+    btnSR.classList.add('armed');
+    srTimer = setTimeout(() => {
+      clearSrArm();
+    }, 4000);
+  }
+
+  function clearSrArm() {
+    srArmed = false;
+    clearTimeout(srTimer);
+    srTimer = null;
+    btnSR.textContent = 'Stop';
+    btnSR.classList.remove('armed');
+  }
+
+  // ── Init ───────────────────────────────────────────────────────────────────
+  updateDisp();
+  updateBreakDisp();
+  updateRnd();
+  setPhase('Ready', null);
+
+  // Ensure hint visible on start
+  hintEl.style.opacity = '1';
+
+})();
 </script>
 </body>
 </html>
