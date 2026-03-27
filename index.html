@@ -1001,37 +1001,54 @@ body.cm { background: radial-gradient(ellipse at 50% 50%, rgba(167,139,250,0.06)
     }
   }
 
+  function playNotification() {
+    initAudio();
+    const ctx = audioCtx;
+    const now = ctx.currentTime;
+    [880, 660].forEach((freq, i) => {
+      const osc = ctx.createOscillator();
+      const g = ctx.createGain();
+      osc.connect(g);
+      g.connect(ctx.destination);
+      osc.type = 'sine';
+      osc.frequency.value = freq;
+      const t = now + i * 0.35;
+      g.gain.setValueAtTime(0, t);
+      g.gain.linearRampToValueAtTime(0.4, t + 0.01);
+      g.gain.exponentialRampToValueAtTime(0.001, t + 0.8);
+      osc.start(t);
+      osc.stop(t + 0.8);
+    });
+  }
+
   function onPhaseEnd() {
     clearInterval(intervalId);
     intervalId = null;
 
     if (!isBreak && !isMedMode) {
-      // end of focus → start break
+      // end of focus → notify and wait for user to start break
       rounds++;
       pts += timerMin;
       updateRnd();
 
+      playNotification();
+
       isBreak = true;
       remaining = breakMin * 60;
-      setPhase('Break', 'var(--theta)');
+      setPhase('Focus done — press to start break', 'var(--theta)');
       setBodyPhase();
       updateDisp();
 
-      // switch to theta during break
-      if (!muted) {
-        const prevWave = currentWave;
-        selectWaveAudio('theta');
-        setTimeout(() => {
-          if (!isRunning) return;
-          selectWaveAudio(prevWave);
-        }, breakMin * 60 * 1000);
-      }
+      btnStart.textContent = 'Start Break';
+      hintEl.style.opacity = '0';
+      selectWave('theta');
 
-      intervalId = setInterval(tick, 1000);
     } else if (isBreak) {
-      // end of break → reset to focus
+      // end of break → notify, stay on Deep, stop
+      playNotification();
       isBreak = false;
       stopTimer();
+      selectWave('theta');
       setPhase('Break done — ready!', null);
     } else {
       // meditate session end
