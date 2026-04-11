@@ -70,7 +70,7 @@ body.cm { background: radial-gradient(ellipse at 50% 50%, rgba(167,139,250,0.06)
   gap: 0;
 }
 
-/* ── Header ── */
+/* -- Header -- */
 .header {
   display: flex;
   align-items: baseline;
@@ -90,8 +90,17 @@ body.cm { background: radial-gradient(ellipse at 50% 50%, rgba(167,139,250,0.06)
   color: var(--muted);
   letter-spacing: -0.01em;
 }
+.streak-badge {
+  margin-left: auto;
+  font-family: 'Courier New', monospace;
+  font-size: 12px;
+  color: var(--muted);
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+  display: none;
+}
 
-/* ── Eyebrow ── */
+/* -- Eyebrow -- */
 .eyebrow {
   font-family: 'Courier New', monospace;
   font-size: 11px;
@@ -102,7 +111,7 @@ body.cm { background: radial-gradient(ellipse at 50% 50%, rgba(167,139,250,0.06)
   margin-bottom: 10px;
 }
 
-/* ── Tabs ── */
+/* -- Tabs -- */
 .tabs {
   display: flex;
   border-radius: 16px;
@@ -141,7 +150,7 @@ body.cm { background: radial-gradient(ellipse at 50% 50%, rgba(167,139,250,0.06)
   line-height: 1;
 }
 
-/* ── Timer section ── */
+/* -- Timer section -- */
 .timer-section {
   margin-bottom: 24px;
 }
@@ -167,6 +176,33 @@ body.cm { background: radial-gradient(ellipse at 50% 50%, rgba(167,139,250,0.06)
 .t-colon {
   opacity: 0.55;
 }
+
+/* -- Progress arc -- */
+.progress-arc-wrap {
+  display: block;
+  width: 120px;
+  height: 6px;
+  margin-top: 4px;
+  opacity: 0;
+  transition: opacity 0.3s var(--ease);
+}
+.progress-arc-wrap.visible {
+  opacity: 1;
+}
+.progress-arc-bg {
+  fill: none;
+  stroke: rgba(255,255,255,0.06);
+  stroke-width: 3;
+  stroke-linecap: round;
+}
+.progress-arc-fg {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 3;
+  stroke-linecap: round;
+  transition: stroke 0.3s var(--ease);
+}
+
 .scroll-hint {
   font-size: 11px;
   color: var(--dim);
@@ -223,14 +259,14 @@ body.cm { background: radial-gradient(ellipse at 50% 50%, rgba(167,139,250,0.06)
   line-height: 2;
 }
 
-/* ── Divider ── */
+/* -- Divider -- */
 .divider {
   height: 1px;
   background: var(--divider);
   margin: 22px 0;
 }
 
-/* ── Status row ── */
+/* -- Status row -- */
 .status-row {
   display: flex;
   align-items: center;
@@ -278,7 +314,17 @@ body.cm { background: radial-gradient(ellipse at 50% 50%, rgba(167,139,250,0.06)
   color: var(--muted);
 }
 
-/* ── Wave section ── */
+/* -- Daily stats -- */
+.daily-stats {
+  font-size: 13px;
+  color: var(--muted);
+  letter-spacing: 0.01em;
+}
+.daily-stats .eyebrow {
+  margin-bottom: 4px;
+}
+
+/* -- Wave section -- */
 .wave-section {
   margin-bottom: 0;
 }
@@ -367,7 +413,45 @@ body.cm { background: radial-gradient(ellipse at 50% 50%, rgba(167,139,250,0.06)
   letter-spacing: 0.01em;
 }
 
-/* ── Controls ── */
+/* -- Ambient section -- */
+.ambient-section {
+  margin-bottom: 0;
+}
+.ambient-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 8px;
+  margin-bottom: 12px;
+}
+.ab {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 4px;
+  background: var(--surface);
+  box-shadow: inset 0 0 0 1px var(--ring);
+  border-radius: 14px;
+  border: none;
+  color: var(--muted);
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 550;
+  cursor: pointer;
+  transition: all 0.22s var(--ease);
+  text-align: center;
+  min-height: 44px;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+}
+.ab:active { transform: scale(0.97); }
+.ab.on {
+  background: rgba(255,255,255,0.09);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.18), 0 0 0 1px rgba(255,255,255,0.08);
+  color: var(--text);
+}
+
+/* -- Controls -- */
 .controls {
   display: flex;
   flex-direction: column;
@@ -447,7 +531,7 @@ body.cm { background: radial-gradient(ellipse at 50% 50%, rgba(167,139,250,0.06)
   color: var(--red);
 }
 
-/* ── Breathing animation (meditate mode) ── */
+/* -- Breathing animation (meditate mode) -- */
 .breathing-ring {
   display: none;
   position: fixed;
@@ -476,7 +560,7 @@ body.cm { background: radial-gradient(ellipse at 50% 50%, rgba(167,139,250,0.06)
 /* app content sits above breathing ring */
 .app { position: relative; z-index: 1; }
 
-/* ── Progress / running indicator on timer ── */
+/* -- Progress / running indicator on timer -- */
 .t-num-wrap.running .t-num {
   animation: timerPulse 2s ease-in-out infinite;
 }
@@ -500,15 +584,16 @@ body.cm { background: radial-gradient(ellipse at 50% 50%, rgba(167,139,250,0.06)
   <div class="header">
     <span class="app-title">Focus Timer</span>
     <span class="app-subtitle">binaural beats + pomodoro</span>
+    <span class="streak-badge" id="streakBadge"></span>
   </div>
 
   <!-- Tabs -->
   <div class="tabs" role="tablist">
     <button class="tab on" id="tabFocus" role="tab" aria-selected="true" aria-controls="focusPanel">
-      <span class="tab-icon">◎</span> Focus
+      <span class="tab-icon">&#9678;</span> Focus
     </button>
     <button class="tab" id="tabMed" role="tab" aria-selected="false" aria-controls="meditatePanel">
-      <span class="tab-icon">◌</span> Meditate
+      <span class="tab-icon">&#9676;</span> Meditate
     </button>
   </div>
 
@@ -517,9 +602,14 @@ body.cm { background: radial-gradient(ellipse at 50% 50%, rgba(167,139,250,0.06)
     <div class="eyebrow" id="timerEyebrow">Work Duration</div>
     <div class="t-num-wrap" id="mainTrack" aria-label="Timer: drag up/down to set minutes">
       <div class="t-num" id="dispNum">25<span class="t-colon">:</span>00</div>
+      <!-- Progress arc -->
+      <svg class="progress-arc-wrap" id="progressArc" viewBox="0 0 120 10" preserveAspectRatio="xMidYMid meet">
+        <path class="progress-arc-bg" d="M 4 8 A 56 56 0 0 1 116 8" />
+        <path class="progress-arc-fg" id="progressArcFg" d="M 4 8 A 56 56 0 0 1 116 8" />
+      </svg>
     </div>
     <div class="scroll-hint" id="hint">
-      <span class="scroll-hint-arrow">↕</span>
+      <span class="scroll-hint-arrow">&UpDownArrow;</span>
       <span>drag or scroll to adjust</span>
     </div>
 
@@ -527,7 +617,7 @@ body.cm { background: radial-gradient(ellipse at 50% 50%, rgba(167,139,250,0.06)
     <div class="break-row" id="breakRow">
       <span class="b-label">Break</span>
       <div class="b-track" id="breakTrack" aria-label="Break duration: drag to adjust">
-        <span class="b-icon">☕</span>
+        <span class="b-icon">&#9749;</span>
         <span class="b-val" id="breakNum">5 min</span>
       </div>
     </div>
@@ -544,8 +634,16 @@ body.cm { background: radial-gradient(ellipse at 50% 50%, rgba(167,139,250,0.06)
     </div>
     <div class="rounds-wrap">
       <span class="rounds-eyebrow">Rounds</span>
-      <span class="rounds-val" id="rndEl">0 rnd · 0 pts</span>
+      <span class="rounds-val" id="rndEl">0 rnd &middot; 0 pts</span>
     </div>
+  </div>
+
+  <!-- Divider -->
+  <div class="divider"></div>
+
+  <!-- Daily stats -->
+  <div class="daily-stats" id="dailyStats">
+    <span class="phase-txt" id="dailyTxt"></span>
   </div>
 
   <!-- Divider -->
@@ -558,17 +656,17 @@ body.cm { background: radial-gradient(ellipse at 50% 50%, rgba(167,139,250,0.06)
       <button class="wb beta on" id="waveB" aria-pressed="true">
         <span class="wb-label">Beta</span>
         <span class="wb-name">Focus</span>
-        <span class="wb-hz">14–30 Hz</span>
+        <span class="wb-hz">14&ndash;30 Hz</span>
       </button>
       <button class="wb alpha" id="waveA" aria-pressed="false">
         <span class="wb-label">Alpha</span>
         <span class="wb-name">Relax</span>
-        <span class="wb-hz">8–13 Hz</span>
+        <span class="wb-hz">8&ndash;13 Hz</span>
       </button>
       <button class="wb theta" id="waveTheta" aria-pressed="false">
         <span class="wb-label">Theta</span>
         <span class="wb-name">Deep</span>
-        <span class="wb-hz">4–7 Hz</span>
+        <span class="wb-hz">4&ndash;7 Hz</span>
       </button>
     </div>
     <div class="wave-status">
@@ -580,10 +678,25 @@ body.cm { background: radial-gradient(ellipse at 50% 50%, rgba(167,139,250,0.06)
   <!-- Divider -->
   <div class="divider"></div>
 
+  <!-- Ambient Sound section -->
+  <div class="ambient-section">
+    <div class="eyebrow">Ambient Sound</div>
+    <div class="ambient-grid">
+      <button class="ab on" id="ambOff">Off</button>
+      <button class="ab" id="ambRain">Rain</button>
+      <button class="ab" id="ambBrown">Brown Noise</button>
+      <button class="ab" id="ambCafe">Caf&eacute;</button>
+      <button class="ab" id="ambForest">Forest</button>
+    </div>
+  </div>
+
+  <!-- Divider -->
+  <div class="divider"></div>
+
   <!-- Controls -->
   <div class="controls">
     <div class="controls-row">
-      <button class="btn btn-mute" id="muteBtn" aria-label="Mute/unmute">🔔</button>
+      <button class="btn btn-mute" id="muteBtn" aria-label="Mute/unmute">&#128276;</button>
       <button class="btn btn-start" id="btnStart">Start</button>
       <button class="btn btn-sr" id="btnSR">Stop</button>
     </div>
@@ -595,31 +708,93 @@ body.cm { background: radial-gradient(ellipse at 50% 50%, rgba(167,139,250,0.06)
 (function () {
   'use strict';
 
-  // ── State ──────────────────────────────────────────────────────────────────
+  // -- State --
   let isMedMode = false;
   let timerMin = 25;
   let breakMin = 5;
   let isRunning = false;
   let isBreak = false;
   let remaining = 0;
+  let totalPhaseTime = 0;
   let intervalId = null;
   let rounds = 0;
   let pts = 0;
   let muted = false;
   let currentWave = 'beta';
+  let currentAmbient = 'off';
   let audioCtx = null;
   let oscLeft = null, oscRight = null, gainNode = null;
+  let ambientSource = null, ambientGain = null;
   let wakeLock = null;
   let srArmed = false;
   let srTimer = null;
 
   const WAVES = {
-    beta:  { carrier: 200, beat: 20,  name: 'Beta · 20 Hz · Focus' },
-    alpha: { carrier: 200, beat: 10,  name: 'Alpha · 10 Hz · Relax' },
-    theta: { carrier: 200, beat: 6,   name: 'Theta · 6 Hz · Deep' }
+    beta:  { carrier: 200, beat: 20,  name: 'Beta \u00b7 20 Hz \u00b7 Focus' },
+    alpha: { carrier: 200, beat: 10,  name: 'Alpha \u00b7 10 Hz \u00b7 Relax' },
+    theta: { carrier: 200, beat: 6,   name: 'Theta \u00b7 6 Hz \u00b7 Deep' }
   };
 
-  // ── Elements ───────────────────────────────────────────────────────────────
+  // -- Ambient Sound generators --
+  function makeRain(ctx) {
+    const buf = ctx.createBuffer(1, ctx.sampleRate * 2, ctx.sampleRate);
+    const data = buf.getChannelData(0);
+    for (let i = 0; i < data.length; i++) data[i] = Math.random() * 2 - 1;
+    const src = ctx.createBufferSource();
+    src.buffer = buf;
+    src.loop = true;
+    const filter = ctx.createBiquadFilter();
+    filter.type = 'lowpass';
+    filter.frequency.value = 800;
+    src.connect(filter);
+    return { source: src, output: filter };
+  }
+
+  function makeBrown(ctx) {
+    const buf = ctx.createBuffer(1, ctx.sampleRate * 2, ctx.sampleRate);
+    const data = buf.getChannelData(0);
+    let last = 0;
+    for (let i = 0; i < data.length; i++) {
+      const white = Math.random() * 2 - 1;
+      data[i] = last = (last + 0.02 * white) / 1.02;
+    }
+    let max = 0;
+    for (let i = 0; i < data.length; i++) { if (Math.abs(data[i]) > max) max = Math.abs(data[i]); }
+    if (max > 0) for (let i = 0; i < data.length; i++) data[i] /= max;
+    const src = ctx.createBufferSource();
+    src.buffer = buf;
+    src.loop = true;
+    return { source: src, output: src };
+  }
+
+  function makeCafe(ctx) {
+    const brown = makeBrown(ctx);
+    const filter = ctx.createBiquadFilter();
+    filter.type = 'bandpass';
+    filter.frequency.value = 400;
+    filter.Q.value = 0.5;
+    brown.output.connect(filter);
+    return { source: brown.source, output: filter };
+  }
+
+  function makeForest(ctx) {
+    const brown = makeBrown(ctx);
+    const filter = ctx.createBiquadFilter();
+    filter.type = 'highpass';
+    filter.frequency.value = 200;
+    brown.output.connect(filter);
+    return { source: brown.source, output: filter };
+  }
+
+  const AMBIENTS = {
+    off:    { label: 'Off',         gen: null },
+    rain:   { label: 'Rain',        gen: makeRain },
+    brown:  { label: 'Brown Noise', gen: makeBrown },
+    cafe:   { label: 'Caf\u00e9',   gen: makeCafe },
+    forest: { label: 'Forest',      gen: makeForest },
+  };
+
+  // -- Elements --
   const dispNum     = document.getElementById('dispNum');
   const mainTrack   = document.getElementById('mainTrack');
   const breakNumEl  = document.getElementById('breakNum');
@@ -641,19 +816,129 @@ body.cm { background: radial-gradient(ellipse at 50% 50%, rgba(167,139,250,0.06)
   const waveTxtEl   = document.getElementById('waveTxt');
   const timerEyebrow = document.getElementById('timerEyebrow');
   const breathRing  = document.getElementById('breathingRing');
+  const progressArc = document.getElementById('progressArc');
+  const progressArcFg = document.getElementById('progressArcFg');
+  const dailyTxt    = document.getElementById('dailyTxt');
+  const streakBadge = document.getElementById('streakBadge');
 
-  // ── Display helpers ────────────────────────────────────────────────────────
+  // Ambient buttons
+  const ambBtns = {
+    off: document.getElementById('ambOff'),
+    rain: document.getElementById('ambRain'),
+    brown: document.getElementById('ambBrown'),
+    cafe: document.getElementById('ambCafe'),
+    forest: document.getElementById('ambForest'),
+  };
+
+  // -- localStorage helpers --
+  function todayStr() {
+    const d = new Date();
+    return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+  }
+
+  function yesterdayStr() {
+    const d = new Date();
+    d.setDate(d.getDate() - 1);
+    return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+  }
+
+  // -- Task 5: Settings memory --
+  function saveSettings() {
+    const s = { timerMin, breakMin, wave: currentWave, ambient: currentAmbient };
+    try { localStorage.setItem('focustimer_settings', JSON.stringify(s)); } catch(e) {}
+  }
+
+  function loadSettings() {
+    try {
+      const raw = localStorage.getItem('focustimer_settings');
+      if (!raw) return;
+      const s = JSON.parse(raw);
+      if (s.timerMin >= 1 && s.timerMin <= 180) timerMin = s.timerMin;
+      if (s.breakMin >= 1 && s.breakMin <= 60) breakMin = s.breakMin;
+      if (WAVES[s.wave]) currentWave = s.wave;
+      if (AMBIENTS[s.ambient]) currentAmbient = s.ambient;
+    } catch(e) {}
+  }
+
+  // -- Task 2: Daily record --
+  function getDaily() {
+    try {
+      const raw = localStorage.getItem('focustimer_daily');
+      if (!raw) return null;
+      return JSON.parse(raw);
+    } catch(e) { return null; }
+  }
+
+  function initDaily() {
+    let d = getDaily();
+    const today = todayStr();
+    if (!d || d.date !== today) {
+      d = { date: today, rounds: 0, focusMin: 0, breakMin: 0 };
+      try { localStorage.setItem('focustimer_daily', JSON.stringify(d)); } catch(e) {}
+    }
+    return d;
+  }
+
+  function updateDaily(addRounds, addFocusMin, addBreakMin) {
+    let d = initDaily();
+    d.rounds += addRounds;
+    d.focusMin += addFocusMin;
+    d.breakMin += addBreakMin;
+    try { localStorage.setItem('focustimer_daily', JSON.stringify(d)); } catch(e) {}
+    renderDaily();
+  }
+
+  function renderDaily() {
+    const d = initDaily();
+    dailyTxt.textContent = '\u4eca\u5929\uff1a' + d.rounds + ' \u8f2a \u00b7 ' + d.focusMin + ' \u5206\u9418\u5c08\u6ce8';
+  }
+
+  // -- Task 6: Streak --
+  function getStreak() {
+    try {
+      const raw = localStorage.getItem('focustimer_streak');
+      if (!raw) return { lastDate: '', count: 0 };
+      return JSON.parse(raw);
+    } catch(e) { return { lastDate: '', count: 0 }; }
+  }
+
+  function updateStreak() {
+    const today = todayStr();
+    const yesterday = yesterdayStr();
+    let s = getStreak();
+    if (s.lastDate === today) return;
+    if (s.lastDate === yesterday) {
+      s.count++;
+    } else {
+      s.count = 1;
+    }
+    s.lastDate = today;
+    try { localStorage.setItem('focustimer_streak', JSON.stringify(s)); } catch(e) {}
+    renderStreak();
+  }
+
+  function renderStreak() {
+    const s = getStreak();
+    if (s.count >= 2) {
+      streakBadge.textContent = '\ud83d\udd25 ' + s.count + ' days';
+      streakBadge.style.display = '';
+    } else {
+      streakBadge.style.display = 'none';
+    }
+  }
+
+  // -- Display helpers --
   function fmtTime(totalSec) {
     const m = Math.floor(totalSec / 60);
     const s = totalSec % 60;
-    return `${String(m).padStart(2,'0')}<span class="t-colon">:</span>${String(s).padStart(2,'0')}`;
+    return String(m).padStart(2,'0') + '<span class="t-colon">:</span>' + String(s).padStart(2,'0');
   }
 
   function updateDisp() {
     if (isRunning) {
       dispNum.innerHTML = fmtTime(remaining);
     } else {
-      dispNum.innerHTML = `${String(timerMin).padStart(2,'0')}<span class="t-colon">:</span>00`;
+      dispNum.innerHTML = String(timerMin).padStart(2,'0') + '<span class="t-colon">:</span>00';
     }
   }
 
@@ -661,7 +946,7 @@ body.cm { background: radial-gradient(ellipse at 50% 50%, rgba(167,139,250,0.06)
     phaseTxt.textContent = text;
     if (color) {
       phasePip.style.background = color;
-      phasePip.style.boxShadow = `0 0 6px ${color}`;
+      phasePip.style.boxShadow = '0 0 6px ' + color;
       phasePip.classList.add('visible');
     } else {
       phasePip.classList.remove('visible');
@@ -669,14 +954,29 @@ body.cm { background: radial-gradient(ellipse at 50% 50%, rgba(167,139,250,0.06)
   }
 
   function updateRnd() {
-    rndEl.textContent = `${rounds} rnd · ${pts} pts`;
+    rndEl.textContent = rounds + ' rnd \u00b7 ' + pts + ' pts';
   }
 
   function updateBreakDisp() {
-    breakNumEl.textContent = `${breakMin} min`;
+    breakNumEl.textContent = breakMin + ' min';
   }
 
-  // ── Mode switching ─────────────────────────────────────────────────────────
+  // -- Task 3: Progress arc --
+  function updateProgressArc() {
+    if (!isRunning || totalPhaseTime <= 0) {
+      progressArc.classList.remove('visible');
+      return;
+    }
+    progressArc.classList.add('visible');
+    const progress = 1 - (remaining / totalPhaseTime);
+    // Arc total length (approximate for the path)
+    const arcLen = Math.PI * 56; // semicircle circumference
+    const dash = progress * arcLen;
+    progressArcFg.style.strokeDasharray = dash + ' ' + arcLen;
+    progressArcFg.style.stroke = isBreak ? 'var(--theta)' : 'var(--accent)';
+  }
+
+  // -- Mode switching --
   function setMode(med) {
     isMedMode = med;
     tabFocus.classList.toggle('on', !med);
@@ -701,13 +1001,14 @@ body.cm { background: radial-gradient(ellipse at 50% 50%, rgba(167,139,250,0.06)
     if (!isRunning) {
       timerMin = med ? 15 : 25;
       updateDisp();
+      saveSettings();
     }
   }
 
-  tabFocus.addEventListener('click', () => { if (isRunning) return; setMode(false); });
-  tabMed.addEventListener('click', () => { if (isRunning) return; setMode(true); });
+  tabFocus.addEventListener('click', function() { if (isRunning) return; setMode(false); });
+  tabMed.addEventListener('click', function() { if (isRunning) return; setMode(true); });
 
-  // ── Drag / scroll for main timer ──────────────────────────────────────────
+  // -- Drag / scroll for main timer --
   let dragStartY = null;
   let dragBase = null;
   const STEP_PX = 8;
@@ -717,15 +1018,16 @@ body.cm { background: radial-gradient(ellipse at 50% 50%, rgba(167,139,250,0.06)
     return Math.max(1, Math.min(180, val));
   }
 
-  mainTrack.addEventListener('wheel', (e) => {
+  mainTrack.addEventListener('wheel', function(e) {
     if (isRunning) return;
     e.preventDefault();
     const delta = e.deltaY > 0 ? -1 : 1;
     timerMin = clampMin(timerMin + delta);
     updateDisp();
+    saveSettings();
   }, { passive: false });
 
-  mainTrack.addEventListener('mousedown', (e) => {
+  mainTrack.addEventListener('mousedown', function(e) {
     if (isRunning) return;
     dragStartY = e.clientY;
     dragBase = timerMin;
@@ -743,15 +1045,16 @@ body.cm { background: radial-gradient(ellipse at 50% 50%, rgba(167,139,250,0.06)
   function onMouseUp() {
     document.removeEventListener('mousemove', onMouseMove);
     document.removeEventListener('mouseup', onMouseUp);
+    saveSettings();
   }
 
-  mainTrack.addEventListener('touchstart', (e) => {
+  mainTrack.addEventListener('touchstart', function(e) {
     if (isRunning) return;
     dragStartY = e.touches[0].clientY;
     dragBase = timerMin;
   }, { passive: true });
 
-  mainTrack.addEventListener('touchmove', (e) => {
+  mainTrack.addEventListener('touchmove', function(e) {
     if (isRunning) return;
     const dy = dragStartY - e.touches[0].clientY;
     const steps = Math.round(dy / STEP_TOUCH);
@@ -759,19 +1062,24 @@ body.cm { background: radial-gradient(ellipse at 50% 50%, rgba(167,139,250,0.06)
     updateDisp();
   }, { passive: true });
 
-  // ── Drag for break track ───────────────────────────────────────────────────
+  mainTrack.addEventListener('touchend', function() {
+    saveSettings();
+  }, { passive: true });
+
+  // -- Drag for break track --
   let bDragStartY = null;
   let bDragBase = null;
 
-  breakTrack.addEventListener('wheel', (e) => {
+  breakTrack.addEventListener('wheel', function(e) {
     if (isRunning) return;
     e.preventDefault();
     const delta = e.deltaY > 0 ? -1 : 1;
     breakMin = Math.max(1, Math.min(60, breakMin + delta));
     updateBreakDisp();
+    saveSettings();
   }, { passive: false });
 
-  breakTrack.addEventListener('mousedown', (e) => {
+  breakTrack.addEventListener('mousedown', function(e) {
     if (isRunning) return;
     bDragStartY = e.clientY;
     bDragBase = breakMin;
@@ -789,15 +1097,16 @@ body.cm { background: radial-gradient(ellipse at 50% 50%, rgba(167,139,250,0.06)
   function onBMouseUp() {
     document.removeEventListener('mousemove', onBMouseMove);
     document.removeEventListener('mouseup', onBMouseUp);
+    saveSettings();
   }
 
-  breakTrack.addEventListener('touchstart', (e) => {
+  breakTrack.addEventListener('touchstart', function(e) {
     if (isRunning) return;
     bDragStartY = e.touches[0].clientY;
     bDragBase = breakMin;
   }, { passive: true });
 
-  breakTrack.addEventListener('touchmove', (e) => {
+  breakTrack.addEventListener('touchmove', function(e) {
     if (isRunning) return;
     const dy = bDragStartY - e.touches[0].clientY;
     const steps = Math.round(dy / STEP_TOUCH);
@@ -805,7 +1114,11 @@ body.cm { background: radial-gradient(ellipse at 50% 50%, rgba(167,139,250,0.06)
     updateBreakDisp();
   }, { passive: true });
 
-  // ── Audio ──────────────────────────────────────────────────────────────────
+  breakTrack.addEventListener('touchend', function() {
+    saveSettings();
+  }, { passive: true });
+
+  // -- Audio --
   function initAudio() {
     if (!audioCtx) {
       audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -844,7 +1157,7 @@ body.cm { background: radial-gradient(ellipse at 50% 50%, rgba(167,139,250,0.06)
     oscRight.start();
 
     waveDot.classList.add('active');
-    const wClass = currentWave;
+    var wClass = currentWave;
     if (wClass === 'beta') {
       waveDot.style.background = 'var(--accent)';
       waveDot.style.boxShadow = '0 0 5px var(--accent)';
@@ -868,36 +1181,89 @@ body.cm { background: radial-gradient(ellipse at 50% 50%, rgba(167,139,250,0.06)
     waveTxtEl.textContent = 'Waves off';
   }
 
-  // ── Wave buttons ───────────────────────────────────────────────────────────
+  // -- Ambient sound --
+  function startAmbient() {
+    stopAmbient();
+    if (currentAmbient === 'off') return;
+    initAudio();
+    const gen = AMBIENTS[currentAmbient].gen;
+    if (!gen) return;
+    const result = gen(audioCtx);
+    ambientGain = audioCtx.createGain();
+    ambientGain.gain.setValueAtTime(0, audioCtx.currentTime);
+    ambientGain.gain.linearRampToValueAtTime(muted ? 0 : 0.15, audioCtx.currentTime + 0.3);
+    result.output.connect(ambientGain);
+    ambientGain.connect(audioCtx.destination);
+    result.source.start();
+    ambientSource = result.source;
+  }
+
+  function stopAmbient() {
+    if (ambientSource) {
+      if (ambientGain) {
+        try {
+          ambientGain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.3);
+        } catch(e) {}
+      }
+      setTimeout(function() {
+        try { ambientSource.stop(); } catch(e) {}
+        ambientSource = null;
+        ambientGain = null;
+      }, 350);
+    }
+  }
+
+  function selectAmbient(id) {
+    currentAmbient = id;
+    Object.keys(ambBtns).forEach(function(k) {
+      ambBtns[k].classList.toggle('on', k === id);
+    });
+    if (isRunning) {
+      startAmbient();
+    }
+    saveSettings();
+  }
+
+  ambBtns.off.addEventListener('click', function() { selectAmbient('off'); });
+  ambBtns.rain.addEventListener('click', function() { selectAmbient('rain'); });
+  ambBtns.brown.addEventListener('click', function() { selectAmbient('brown'); });
+  ambBtns.cafe.addEventListener('click', function() { selectAmbient('cafe'); });
+  ambBtns.forest.addEventListener('click', function() { selectAmbient('forest'); });
+
+  // -- Wave buttons --
   function selectWave(id) {
     currentWave = id;
-    [waveB, waveA, waveTheta].forEach(btn => {
+    [waveB, waveA, waveTheta].forEach(function(btn) {
       btn.classList.remove('on');
       btn.setAttribute('aria-pressed', 'false');
     });
-    const map = { beta: waveB, alpha: waveA, theta: waveTheta };
+    var map = { beta: waveB, alpha: waveA, theta: waveTheta };
     map[id].classList.add('on');
     map[id].setAttribute('aria-pressed', 'true');
     if (isRunning && !muted) {
       startWaves();
     }
+    saveSettings();
   }
 
-  waveB.addEventListener('click', () => selectWave('beta'));
-  waveA.addEventListener('click', () => selectWave('alpha'));
-  waveTheta.addEventListener('click', () => selectWave('theta'));
+  waveB.addEventListener('click', function() { selectWave('beta'); });
+  waveA.addEventListener('click', function() { selectWave('alpha'); });
+  waveTheta.addEventListener('click', function() { selectWave('theta'); });
 
-  // ── Mute ──────────────────────────────────────────────────────────────────
-  muteBtn.addEventListener('click', () => {
+  // -- Mute --
+  muteBtn.addEventListener('click', function() {
     muted = !muted;
-    muteBtn.textContent = muted ? '🔕' : '🔔';
+    muteBtn.textContent = muted ? '\ud83d\udd15' : '\ud83d\udd14';
     muteBtn.setAttribute('aria-label', muted ? 'Unmute' : 'Mute');
     if (gainNode) {
       gainNode.gain.setTargetAtTime(muted ? 0 : 0.08, audioCtx.currentTime, 0.05);
     }
+    if (ambientGain) {
+      ambientGain.gain.setTargetAtTime(muted ? 0 : 0.15, audioCtx.currentTime, 0.05);
+    }
   });
 
-  // ── Wake Lock ──────────────────────────────────────────────────────────────
+  // -- Wake Lock --
   async function requestWakeLock() {
     if ('wakeLock' in navigator) {
       try { wakeLock = await navigator.wakeLock.request('screen'); } catch(e) {}
@@ -908,7 +1274,7 @@ body.cm { background: radial-gradient(ellipse at 50% 50%, rgba(167,139,250,0.06)
     if (wakeLock) { wakeLock.release(); wakeLock = null; }
   }
 
-  // ── Background phase tint ──────────────────────────────────────────────────
+  // -- Background phase tint --
   function setBodyPhase() {
     document.body.classList.remove('cf','cb','cm');
     if (isMedMode) {
@@ -920,10 +1286,11 @@ body.cm { background: radial-gradient(ellipse at 50% 50%, rgba(167,139,250,0.06)
     }
   }
 
-  // ── Timer logic ────────────────────────────────────────────────────────────
+  // -- Timer logic --
   function startTimer() {
     clearSrArm();
     remaining = timerMin * 60;
+    totalPhaseTime = remaining;
     isRunning = true;
     isBreak = false;
 
@@ -942,8 +1309,14 @@ body.cm { background: radial-gradient(ellipse at 50% 50%, rgba(167,139,250,0.06)
 
     setBodyPhase();
     requestWakeLock();
-    if (!muted) startWaves();
+    if (!muted) {
+      startWaves();
+      startAmbient();
+    } else if (currentAmbient !== 'off') {
+      startAmbient();
+    }
 
+    updateProgressArc();
     intervalId = setInterval(tick, 1000);
   }
 
@@ -971,7 +1344,9 @@ body.cm { background: radial-gradient(ellipse at 50% 50%, rgba(167,139,250,0.06)
     intervalId = null;
     isRunning = false;
     isBreak = false;
+    totalPhaseTime = 0;
     stopWaves();
+    stopAmbient();
     releaseWakeLock();
     mainTrack.classList.remove('running');
     breathRing.classList.remove('active');
@@ -983,6 +1358,7 @@ body.cm { background: radial-gradient(ellipse at 50% 50%, rgba(167,139,250,0.06)
     setPhase('Ready', null);
     setBodyPhase();
     updateDisp();
+    updateProgressArc();
   }
 
   function tick() {
@@ -992,6 +1368,7 @@ body.cm { background: radial-gradient(ellipse at 50% 50%, rgba(167,139,250,0.06)
     }
     remaining--;
     updateDisp();
+    updateProgressArc();
 
     // pulse timer number on last 10s of focus
     if (!isBreak && remaining <= 10 && remaining > 0) {
@@ -1003,22 +1380,27 @@ body.cm { background: radial-gradient(ellipse at 50% 50%, rgba(167,139,250,0.06)
 
   function playNotification() {
     initAudio();
-    const ctx = audioCtx;
-    const now = ctx.currentTime;
-    [880, 660].forEach((freq, i) => {
-      const osc = ctx.createOscillator();
-      const g = ctx.createGain();
+    var ctx = audioCtx;
+    var now = ctx.currentTime;
+    [880, 660].forEach(function(freq, i) {
+      var osc = ctx.createOscillator();
+      var g = ctx.createGain();
       osc.connect(g);
       g.connect(ctx.destination);
       osc.type = 'sine';
       osc.frequency.value = freq;
-      const t = now + i * 0.35;
+      var t = now + i * 0.35;
       g.gain.setValueAtTime(0, t);
       g.gain.linearRampToValueAtTime(0.4, t + 0.01);
       g.gain.exponentialRampToValueAtTime(0.001, t + 0.8);
       osc.start(t);
       osc.stop(t + 0.8);
     });
+
+    // Task 4: Vibration feedback
+    if (navigator.vibrate) {
+      navigator.vibrate([200, 100, 200]);
+    }
   }
 
   function onPhaseEnd() {
@@ -1026,35 +1408,52 @@ body.cm { background: radial-gradient(ellipse at 50% 50%, rgba(167,139,250,0.06)
     intervalId = null;
 
     if (!isBreak && !isMedMode) {
-      // end of focus → notify and wait for user to start break
+      // end of focus -> notify and wait for user to start break
       rounds++;
       pts += timerMin;
       updateRnd();
+      updateDaily(1, timerMin, 0);
+
+      // Streak: first round of the day
+      var d = getDaily();
+      if (d && d.rounds === 1) {
+        updateStreak();
+      }
 
       playNotification();
 
       isBreak = true;
       remaining = breakMin * 60;
-      setPhase('Focus done — press to start break', 'var(--theta)');
+      totalPhaseTime = remaining;
+      setPhase('Focus done \u2014 press to start break', 'var(--theta)');
       setBodyPhase();
       updateDisp();
+      updateProgressArc();
 
       btnStart.textContent = 'Start Break';
       hintEl.style.opacity = '0';
       selectWave('theta');
 
     } else if (isBreak) {
-      // end of break → notify, stay on Deep, stop
+      // end of break -> notify, stay on Deep, stop
+      updateDaily(0, 0, breakMin);
       playNotification();
       isBreak = false;
       stopTimer();
       selectWave('theta');
-      setPhase('Break done — ready!', null);
+      setPhase('Break done \u2014 ready!', null);
     } else {
       // meditate session end
       rounds++;
       pts += timerMin;
       updateRnd();
+      updateDaily(1, timerMin, 0);
+
+      var d2 = getDaily();
+      if (d2 && d2.rounds === 1) {
+        updateStreak();
+      }
+
       stopTimer();
       setPhase('Session complete', null);
     }
@@ -1065,8 +1464,8 @@ body.cm { background: radial-gradient(ellipse at 50% 50%, rgba(167,139,250,0.06)
     if (isRunning && !muted) startWaves();
   }
 
-  // ── Btn Start ──────────────────────────────────────────────────────────────
-  btnStart.addEventListener('click', () => {
+  // -- Btn Start --
+  btnStart.addEventListener('click', function() {
     if (!isRunning) {
       startTimer();
     } else if (intervalId) {
@@ -1076,8 +1475,8 @@ body.cm { background: radial-gradient(ellipse at 50% 50%, rgba(167,139,250,0.06)
     }
   });
 
-  // ── Btn Stop/Reset ─────────────────────────────────────────────────────────
-  btnSR.addEventListener('click', () => {
+  // -- Btn Stop/Reset --
+  btnSR.addEventListener('click', function() {
     if (!isRunning) return;
     if (!srArmed) {
       armSR();
@@ -1092,7 +1491,7 @@ body.cm { background: radial-gradient(ellipse at 50% 50%, rgba(167,139,250,0.06)
     srArmed = true;
     btnSR.textContent = 'Reset?';
     btnSR.classList.add('armed');
-    srTimer = setTimeout(() => {
+    srTimer = setTimeout(function() {
       clearSrArm();
     }, 4000);
   }
@@ -1105,11 +1504,24 @@ body.cm { background: radial-gradient(ellipse at 50% 50%, rgba(167,139,250,0.06)
     btnSR.classList.remove('armed');
   }
 
-  // ── Init ───────────────────────────────────────────────────────────────────
+  // -- Init --
+  loadSettings();
+
+  // Apply saved wave selection
+  selectWave(currentWave);
+
+  // Apply saved ambient selection
+  Object.keys(ambBtns).forEach(function(k) {
+    ambBtns[k].classList.toggle('on', k === currentAmbient);
+  });
+
   updateDisp();
   updateBreakDisp();
   updateRnd();
   setPhase('Ready', null);
+  renderDaily();
+  renderStreak();
+  updateProgressArc();
 
   // Ensure hint visible on start
   hintEl.style.opacity = '1';
