@@ -35,8 +35,6 @@
   --alpha-rgb: 167,139,250;
   --theta: #34d399;
   --theta-rgb: 52,211,153;
-  --break-color: #34d399;
-  --break-rgb: 52,211,153;
   --red: rgba(220,70,55,0.9);
   --red-bg: rgba(220,70,55,0.09);
   --red-ring: rgba(220,70,55,0.35);
@@ -60,7 +58,6 @@ html, body {
 
 body { transition: background 0.6s var(--ease); }
 body.cf { background: radial-gradient(ellipse at 60% 20%, rgba(91,156,246,0.06) 0%, #0a0a0c 65%); }
-body.cb { background: radial-gradient(ellipse at 50% 40%, rgba(52,211,153,0.08) 0%, #0a0a0c 60%); }
 body.cm { background: radial-gradient(ellipse at 50% 50%, rgba(167,139,250,0.06) 0%, #0a0a0c 65%); }
 
 .app {
@@ -164,7 +161,7 @@ body.cm { background: radial-gradient(ellipse at 50% 50%, rgba(167,139,250,0.06)
   transition: all 0.5s var(--ease);
 }
 
-/* -- Immersive running mode: circular timer -- */
+/* -- Circle timer container -- */
 .timer-section.immersive {
   display: flex;
   flex-direction: column;
@@ -176,31 +173,44 @@ body.cm { background: radial-gradient(ellipse at 50% 50%, rgba(167,139,250,0.06)
 
 .circle-timer {
   position: relative;
+}
+
+/* Idle: no size, inner flows normally */
+.timer-section:not(.immersive) .circle-timer {
+  width: auto;
+  height: auto;
+}
+.timer-section:not(.immersive) .circle-svg {
   display: none;
-  align-items: center;
-  justify-content: center;
+}
+.timer-section:not(.immersive) .circle-wave-info,
+.timer-section:not(.immersive) .circle-phase {
+  display: none;
+}
+
+/* Immersive: sized circle with centered content */
+.timer-section.immersive .circle-timer {
   width: 240px;
   height: 240px;
 }
-.timer-section.immersive .circle-timer {
-  display: flex;
-}
-.timer-section.immersive .t-num-wrap {
+.timer-section.immersive .circle-inner {
   position: absolute;
-  margin-bottom: 0;
+  top: 0; left: 0; right: 0; bottom: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
 }
 .timer-section.immersive .scroll-hint,
-.timer-section.immersive .break-row,
 .timer-section.immersive .eyebrow {
   display: none;
 }
 
+/* SVG ring */
 .circle-svg {
   position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
   transform: rotate(-90deg);
 }
 .circle-bg {
@@ -216,28 +226,26 @@ body.cm { background: radial-gradient(ellipse at 50% 50%, rgba(167,139,250,0.06)
   transition: stroke 0.5s var(--ease);
 }
 
-/* Phase label below circle */
+/* Wave info above timer in circle */
+.circle-wave-info {
+  font-family: 'Courier New', monospace;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.10em;
+  color: var(--dim);
+  margin-bottom: 4px;
+}
+
+/* Phase label below timer in circle */
 .circle-phase {
   font-size: 13px;
   color: var(--muted);
   letter-spacing: 0.02em;
   white-space: nowrap;
-  opacity: 0;
   text-align: center;
-  margin-top: 16px;
-  transition: opacity 0.4s var(--ease);
-}
-.timer-section.immersive .circle-phase {
-  opacity: 1;
+  margin-top: 4px;
 }
 
-/* Break styling in circle */
-.timer-section.immersive.break-mode .circle-fg {
-  stroke: var(--break-color);
-}
-.timer-section.immersive.break-mode .t-num {
-  color: var(--break-color);
-}
 
 .t-num-wrap {
   position: relative;
@@ -280,48 +288,6 @@ body.cm { background: radial-gradient(ellipse at 50% 50%, rgba(167,139,250,0.06)
   opacity: 0.55;
 }
 
-/* Break row */
-.break-row {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-top: 4px;
-  transition: opacity 0.4s var(--ease);
-}
-.b-label {
-  font-size: 12px;
-  color: var(--muted);
-  letter-spacing: 0.01em;
-  white-space: nowrap;
-}
-.b-track {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 0 16px;
-  border-radius: 9999px;
-  min-height: 38px;
-  background: var(--surface);
-  box-shadow: inset 0 0 0 1px var(--ring);
-  cursor: ns-resize;
-  user-select: none;
-  touch-action: none;
-  -webkit-tap-highlight-color: transparent;
-  transition: box-shadow 0.18s var(--ease);
-}
-.b-track:active {
-  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.10);
-}
-.b-icon {
-  font-size: 14px;
-  opacity: 0.55;
-}
-.b-val {
-  font-size: 14px;
-  font-variant-numeric: tabular-nums;
-  color: var(--text);
-  line-height: 2;
-}
 
 /* -- Divider -- */
 .divider {
@@ -601,32 +567,25 @@ body.cm { background: radial-gradient(ellipse at 50% 50%, rgba(167,139,250,0.06)
   color: #0a0a0c;
 }
 
-/* Break mode: start button turns green */
-.btn-start.break-btn {
-  background: rgba(52,211,153,0.9);
-  color: #0a0a0c;
-  box-shadow:
-    0 0 0 1px rgba(52,211,153,0.3),
-    0 4px 20px rgba(0,0,0,0.4),
-    inset 0 1px 0 rgba(255,255,255,0.2);
-}
-.btn-start.break-btn:hover:not(:active) {
-  background: rgba(52,211,153,1);
-}
 
-.btn-sr {
-  min-width: 80px;
-  transition: all 0.18s var(--ease-fast), background 0.25s var(--ease), color 0.25s var(--ease);
+/* Stop link - minimal text button, only visible when running */
+.btn-stop-link {
+  display: none;
+  background: none;
+  border: none;
+  color: var(--dim);
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  padding: 4px 0;
+  text-align: center;
+  transition: color 0.18s var(--ease);
+  -webkit-tap-highlight-color: transparent;
 }
-.btn-sr.armed {
-  background: var(--red-bg);
-  color: var(--red);
-  box-shadow: inset 0 0 0 1px var(--red-ring);
-}
-.btn-sr.armed:hover:not(:active) {
-  background: rgba(220,70,55,0.14);
-  color: var(--red);
-}
+.btn-stop-link:hover { color: var(--muted); }
+.btn-stop-link.visible { display: block; }
 
 /* -- Breathing animation (meditate mode) -- */
 .breathing-ring {
@@ -692,33 +651,26 @@ body.cm { background: radial-gradient(ellipse at 50% 50%, rgba(167,139,250,0.06)
   <div class="timer-section" id="timerSection">
     <div class="eyebrow" id="timerEyebrow">Work Duration</div>
 
-    <!-- Circular progress (visible when running) -->
+    <!-- Circle container: always present, SVG only visible when running -->
     <div class="circle-timer" id="circleTimer">
       <svg class="circle-svg" viewBox="0 0 240 240">
         <circle class="circle-bg" cx="120" cy="120" r="108" />
         <circle class="circle-fg" id="circleFg" cx="120" cy="120" r="108" stroke-dasharray="0 678.58" />
       </svg>
+      <div class="circle-inner">
+        <div class="circle-wave-info" id="circleWaveInfo"></div>
+        <div class="t-num-wrap" id="mainTrack" aria-label="Timer: drag up/down to set minutes">
+          <div class="t-num" id="dispNum">25<span class="t-colon">:</span>00</div>
+        </div>
+        <div class="circle-phase" id="circlePhase"></div>
+      </div>
     </div>
-
-    <div class="t-num-wrap" id="mainTrack" aria-label="Timer: drag up/down to set minutes">
-      <div class="t-num" id="dispNum">25<span class="t-colon">:</span>00</div>
-    </div>
-
-    <div class="circle-phase" id="circlePhase"></div>
 
     <div class="scroll-hint" id="hint">
       <span class="scroll-hint-arrow">&UpDownArrow;</span>
       <span>drag or scroll to adjust</span>
     </div>
 
-    <!-- Break row (focus only) -->
-    <div class="break-row" id="breakRow">
-      <span class="b-label">Break</span>
-      <div class="b-track" id="breakTrack" aria-label="Break duration: drag to adjust">
-        <span class="b-icon">&#9749;</span>
-        <span class="b-val" id="breakNum">5 min</span>
-      </div>
-    </div>
   </div>
 
   <!-- Divider -->
@@ -788,8 +740,8 @@ body.cm { background: radial-gradient(ellipse at 50% 50%, rgba(167,139,250,0.06)
     <div class="controls-row">
       <button class="btn btn-mute" id="muteBtn" aria-label="Mute/unmute">&#128276;</button>
       <button class="btn btn-start" id="btnStart">Start</button>
-      <button class="btn btn-sr" id="btnSR">Stop</button>
     </div>
+    <button class="btn-stop-link" id="btnStop">Reset</button>
   </div>
 
 </div>
@@ -801,9 +753,7 @@ body.cm { background: radial-gradient(ellipse at 50% 50%, rgba(167,139,250,0.06)
   // -- State --
   let isMedMode = false;
   let timerMin = 25;
-  let breakMin = 5;
   let isRunning = false;
-  let isBreak = false;
   let remaining = 0;
   let totalPhaseTime = 0;
   let intervalId = null;
@@ -816,8 +766,7 @@ body.cm { background: radial-gradient(ellipse at 50% 50%, rgba(167,139,250,0.06)
   let oscLeft = null, oscRight = null, gainNode = null;
   let ambientSource = null, ambientGain = null;
   let wakeLock = null;
-  let srArmed = false;
-  let srTimer = null;
+  // (single-button design: Start ↔ Pause toggle, separate stop link)
 
   const WAVES = {
     beta:  { carrier: 200, beat: 20,  name: 'Beta \u00b7 20 Hz \u00b7 Focus' },
@@ -826,96 +775,136 @@ body.cm { background: radial-gradient(ellipse at 50% 50%, rgba(167,139,250,0.06)
   };
 
   // -- Ambient Sound generators --
-  function makeRain(ctx) {
-    const buf = ctx.createBuffer(1, ctx.sampleRate * 2, ctx.sampleRate);
-    const data = buf.getChannelData(0);
-    for (let i = 0; i < data.length; i++) data[i] = Math.random() * 2 - 1;
-    const src = ctx.createBufferSource();
-    src.buffer = buf;
-    src.loop = true;
-    const filter = ctx.createBiquadFilter();
-    filter.type = 'lowpass';
-    filter.frequency.value = 800;
-    src.connect(filter);
-    return { source: src, output: filter };
-  }
-
-  function makeBrown(ctx) {
-    const buf = ctx.createBuffer(1, ctx.sampleRate * 2, ctx.sampleRate);
-    const data = buf.getChannelData(0);
-    let last = 0;
-    for (let i = 0; i < data.length; i++) {
-      const white = Math.random() * 2 - 1;
-      data[i] = last = (last + 0.02 * white) / 1.02;
+  // Helper: create a long noise buffer (5s) to avoid audible loop seams
+  function makeNoiseBuffer(ctx, seconds) {
+    var len = ctx.sampleRate * seconds;
+    var buf = ctx.createBuffer(2, len, ctx.sampleRate);
+    for (var ch = 0; ch < 2; ch++) {
+      var data = buf.getChannelData(ch);
+      for (var i = 0; i < len; i++) data[i] = Math.random() * 2 - 1;
     }
-    let max = 0;
-    for (let i = 0; i < data.length; i++) { if (Math.abs(data[i]) > max) max = Math.abs(data[i]); }
-    if (max > 0) for (let i = 0; i < data.length; i++) data[i] /= max;
-    const src = ctx.createBufferSource();
-    src.buffer = buf;
-    src.loop = true;
-    return { source: src, output: src };
+    return buf;
   }
 
-  function makeForest(ctx) {
-    const brown = makeBrown(ctx);
-    const hp = ctx.createBiquadFilter();
-    hp.type = 'highpass';
-    hp.frequency.value = 200;
-    brown.output.connect(hp);
+  // Helper: create brown noise buffer with crossfade loop
+  function makeBrownBuffer(ctx, seconds) {
+    var len = ctx.sampleRate * seconds;
+    var buf = ctx.createBuffer(2, len, ctx.sampleRate);
+    for (var ch = 0; ch < 2; ch++) {
+      var data = buf.getChannelData(ch);
+      var last = 0;
+      // Use smaller step for smoother brown noise
+      for (var i = 0; i < len; i++) {
+        var white = Math.random() * 2 - 1;
+        data[i] = last = (last + 0.01 * white) / 1.01;
+      }
+      // Normalize gently (don't push to full range)
+      var max = 0;
+      for (var i = 0; i < len; i++) { if (Math.abs(data[i]) > max) max = Math.abs(data[i]); }
+      if (max > 0) {
+        var scale = 0.7 / max;
+        for (var i = 0; i < len; i++) data[i] *= scale;
+      }
+      // Crossfade last 0.5s with first 0.5s to eliminate loop click
+      var fade = Math.floor(ctx.sampleRate * 0.5);
+      for (var i = 0; i < fade; i++) {
+        var t = i / fade;
+        data[len - fade + i] = data[len - fade + i] * (1 - t) + data[i] * t;
+      }
+    }
+    return buf;
+  }
 
-    const buf2 = ctx.createBuffer(1, ctx.sampleRate * 2, ctx.sampleRate);
-    const d2 = buf2.getChannelData(0);
-    for (let i = 0; i < d2.length; i++) d2[i] = Math.random() * 2 - 1;
-    const src2 = ctx.createBufferSource();
-    src2.buffer = buf2;
-    src2.loop = true;
-    const bp = ctx.createBiquadFilter();
+  function makeBufferSource(ctx, buf) {
+    var src = ctx.createBufferSource();
+    src.buffer = buf;
+    src.loop = true;
+    return src;
+  }
+
+  // Rain: soft pink-ish noise, gentle and warm
+  function makeRain(ctx) {
+    var src = makeBufferSource(ctx, makeNoiseBuffer(ctx, 5));
+    // Two cascaded lowpass filters for a steeper, softer rolloff
+    var lp1 = ctx.createBiquadFilter();
+    lp1.type = 'lowpass';
+    lp1.frequency.value = 600;
+    lp1.Q.value = 0.5;
+    var lp2 = ctx.createBiquadFilter();
+    lp2.type = 'lowpass';
+    lp2.frequency.value = 400;
+    lp2.Q.value = 0.3;
+    src.connect(lp1);
+    lp1.connect(lp2);
+    return { source: src, output: lp2 };
+  }
+
+  // Forest: warm brown noise base + very subtle high shimmer
+  function makeForest(ctx) {
+    var src1 = makeBufferSource(ctx, makeBrownBuffer(ctx, 5));
+    var hp = ctx.createBiquadFilter();
+    hp.type = 'highpass';
+    hp.frequency.value = 80;
+    hp.Q.value = 0.3;
+    var lp = ctx.createBiquadFilter();
+    lp.type = 'lowpass';
+    lp.frequency.value = 1200;
+    lp.Q.value = 0.3;
+    src1.connect(hp);
+    hp.connect(lp);
+
+    // Subtle high-freq texture (very quiet, like distant crickets)
+    var src2 = makeBufferSource(ctx, makeNoiseBuffer(ctx, 5));
+    var bp = ctx.createBiquadFilter();
     bp.type = 'bandpass';
-    bp.frequency.value = 3000;
-    bp.Q.value = 2;
+    bp.frequency.value = 4000;
+    bp.Q.value = 0.5; // wide and soft, not sharp
+    var g2 = ctx.createGain();
+    g2.gain.value = 0.025; // very quiet
     src2.connect(bp);
-    const g2 = ctx.createGain();
-    g2.gain.value = 0.08;
     bp.connect(g2);
 
-    const merger = ctx.createGain();
-    hp.connect(merger);
-    g2.connect(merger);
+    var mix = ctx.createGain();
+    mix.gain.value = 1;
+    lp.connect(mix);
+    g2.connect(mix);
 
-    const origStart = brown.source.start.bind(brown.source);
-    brown.source.start = function() { origStart(); src2.start(); };
-    const origStop = brown.source.stop.bind(brown.source);
-    brown.source.stop = function() { origStop(); try { src2.stop(); } catch(e){} };
+    var origStart = src1.start.bind(src1);
+    src1.start = function() { origStart(); src2.start(); };
+    var origStop = src1.stop.bind(src1);
+    src1.stop = function() { origStop(); try { src2.stop(); } catch(e){} };
 
-    return { source: brown.source, output: merger };
+    return { source: src1, output: mix };
   }
 
+  // Ocean: gentle brown noise with slow, subtle volume swell
   function makeOcean(ctx) {
-    const brown = makeBrown(ctx);
-    const lp = ctx.createBiquadFilter();
+    var src = makeBufferSource(ctx, makeBrownBuffer(ctx, 5));
+    var lp = ctx.createBiquadFilter();
     lp.type = 'lowpass';
-    lp.frequency.value = 500;
-    brown.output.connect(lp);
+    lp.frequency.value = 350;
+    lp.Q.value = 0.3;
+    src.connect(lp);
 
-    const lfo = ctx.createOscillator();
+    // Gentle LFO: slow wave cycle (~8s), small amplitude swing
+    var lfo = ctx.createOscillator();
     lfo.type = 'sine';
-    lfo.frequency.value = 0.12;
-    const lfoGain = ctx.createGain();
-    lfoGain.gain.value = 0.4;
+    lfo.frequency.value = 0.08; // ~12s full cycle, very slow
+    var lfoGain = ctx.createGain();
+    lfoGain.gain.value = 0.12; // subtle volume variation (±12%)
     lfo.connect(lfoGain);
 
-    const vca = ctx.createGain();
-    vca.gain.value = 0.6;
+    var vca = ctx.createGain();
+    vca.gain.value = 0.5; // base volume, swings 0.38 ~ 0.62
     lfoGain.connect(vca.gain);
     lp.connect(vca);
 
-    const origStart = brown.source.start.bind(brown.source);
-    brown.source.start = function() { origStart(); lfo.start(); };
-    const origStop = brown.source.stop.bind(brown.source);
-    brown.source.stop = function() { origStop(); try { lfo.stop(); } catch(e){} };
+    var origStart = src.start.bind(src);
+    src.start = function() { origStart(); lfo.start(); };
+    var origStop = src.stop.bind(src);
+    src.stop = function() { origStop(); try { lfo.stop(); } catch(e){} };
 
-    return { source: brown.source, output: vca };
+    return { source: src, output: vca };
   }
 
   const AMBIENTS = {
@@ -933,9 +922,6 @@ body.cm { background: radial-gradient(ellipse at 50% 50%, rgba(167,139,250,0.06)
   const mainTrack = document.getElementById('mainTrack');
   const dispNum = document.getElementById('dispNum');
   const hintEl = document.getElementById('hint');
-  const breakRow = document.getElementById('breakRow');
-  const breakTrack = document.getElementById('breakTrack');
-  const breakNumEl = document.getElementById('breakNum');
   const phasePip = document.getElementById('phasePip');
   const phaseTxt = document.getElementById('phaseTxt');
   const rndEl = document.getElementById('rndEl');
@@ -943,7 +929,7 @@ body.cm { background: radial-gradient(ellipse at 50% 50%, rgba(167,139,250,0.06)
   const streakBadge = document.getElementById('streakBadge');
   const muteBtn = document.getElementById('muteBtn');
   const btnStart = document.getElementById('btnStart');
-  const btnSR = document.getElementById('btnSR');
+  const btnStop = document.getElementById('btnStop');
   const breathRing = document.getElementById('breathingRing');
   const waveDot = document.getElementById('waveDot');
   const waveTxt = document.getElementById('waveTxt');
@@ -953,6 +939,7 @@ body.cm { background: radial-gradient(ellipse at 50% 50%, rgba(167,139,250,0.06)
   const circleTimer = document.getElementById('circleTimer');
   const circleFg = document.getElementById('circleFg');
   const circlePhase = document.getElementById('circlePhase');
+  const circleWaveInfo = document.getElementById('circleWaveInfo');
 
   // All collapsible panels
   const collapsibles = document.querySelectorAll('.collapsible');
@@ -979,7 +966,7 @@ body.cm { background: radial-gradient(ellipse at 50% 50%, rgba(167,139,250,0.06)
 
   // -- Settings memory --
   function saveSettings() {
-    const s = { timerMin, breakMin, wave: currentWave, ambient: currentAmbient };
+    const s = { timerMin, wave: currentWave, ambient: currentAmbient };
     try { localStorage.setItem('focustimer_settings', JSON.stringify(s)); } catch(e) {}
   }
 
@@ -989,7 +976,6 @@ body.cm { background: radial-gradient(ellipse at 50% 50%, rgba(167,139,250,0.06)
       if (!raw) return;
       const s = JSON.parse(raw);
       if (s.timerMin >= 1 && s.timerMin <= 180) timerMin = s.timerMin;
-      if (s.breakMin >= 1 && s.breakMin <= 60) breakMin = s.breakMin;
       if (WAVES[s.wave]) currentWave = s.wave;
       if (AMBIENTS[s.ambient]) currentAmbient = s.ambient;
     } catch(e) {}
@@ -1008,17 +994,16 @@ body.cm { background: radial-gradient(ellipse at 50% 50%, rgba(167,139,250,0.06)
     let d = getDaily();
     const today = todayStr();
     if (!d || d.date !== today) {
-      d = { date: today, rounds: 0, focusMin: 0, breakMin: 0 };
+      d = { date: today, rounds: 0, focusMin: 0 };
       try { localStorage.setItem('focustimer_daily', JSON.stringify(d)); } catch(e) {}
     }
     return d;
   }
 
-  function updateDaily(addRounds, addFocusMin, addBreakMin) {
+  function updateDaily(addRounds, addFocusMin) {
     let d = initDaily();
     d.rounds += addRounds;
     d.focusMin += addFocusMin;
-    d.breakMin += addBreakMin;
     try { localStorage.setItem('focustimer_daily', JSON.stringify(d)); } catch(e) {}
     renderDaily();
   }
@@ -1093,9 +1078,6 @@ body.cm { background: radial-gradient(ellipse at 50% 50%, rgba(167,139,250,0.06)
     rndEl.textContent = rounds + ' rnd \u00b7 ' + pts + ' pts';
   }
 
-  function updateBreakDisp() {
-    breakNumEl.textContent = breakMin + ' min';
-  }
 
   // -- Circular progress --
   const CIRCLE_R = 108;
@@ -1109,21 +1091,18 @@ body.cm { background: radial-gradient(ellipse at 50% 50%, rgba(167,139,250,0.06)
     const progress = 1 - (remaining / totalPhaseTime);
     const dash = progress * CIRCLE_C;
     circleFg.setAttribute('stroke-dasharray', dash + ' ' + CIRCLE_C);
-    circleFg.style.stroke = isBreak ? 'var(--break-color)' : 'var(--accent)';
+    circleFg.style.stroke = 'var(--accent)';
   }
 
   // -- Immersive mode (panels collapse when running) --
   function enterImmersive() {
     collapsibles.forEach(function(el) { el.classList.add('hidden'); });
     timerSection.classList.add('immersive');
-    if (isBreak) {
-      timerSection.classList.add('break-mode');
-    }
   }
 
   function exitImmersive() {
     collapsibles.forEach(function(el) { el.classList.remove('hidden'); });
-    timerSection.classList.remove('immersive', 'break-mode');
+    timerSection.classList.remove('immersive');
   }
 
   // -- Mode switching --
@@ -1133,8 +1112,6 @@ body.cm { background: radial-gradient(ellipse at 50% 50%, rgba(167,139,250,0.06)
     tabFocus.setAttribute('aria-selected', String(!med));
     tabMed.classList.toggle('on', med);
     tabMed.setAttribute('aria-selected', String(med));
-
-    breakRow.style.display = med ? 'none' : 'flex';
 
     if (med) {
       timerEyebrow.textContent = 'Session Duration';
@@ -1215,57 +1192,6 @@ body.cm { background: radial-gradient(ellipse at 50% 50%, rgba(167,139,250,0.06)
     saveSettings();
   }, { passive: true });
 
-  // -- Drag for break track --
-  let bDragStartY = null;
-  let bDragBase = null;
-
-  breakTrack.addEventListener('wheel', function(e) {
-    if (isRunning) return;
-    e.preventDefault();
-    const delta = e.deltaY > 0 ? -1 : 1;
-    breakMin = Math.max(1, Math.min(60, breakMin + delta));
-    updateBreakDisp();
-    saveSettings();
-  }, { passive: false });
-
-  breakTrack.addEventListener('mousedown', function(e) {
-    if (isRunning) return;
-    bDragStartY = e.clientY;
-    bDragBase = breakMin;
-    document.addEventListener('mousemove', onBMouseMove);
-    document.addEventListener('mouseup', onBMouseUp);
-  });
-
-  function onBMouseMove(e) {
-    const dy = bDragStartY - e.clientY;
-    const steps = Math.round(dy / STEP_PX);
-    breakMin = Math.max(1, Math.min(60, bDragBase + steps));
-    updateBreakDisp();
-  }
-
-  function onBMouseUp() {
-    document.removeEventListener('mousemove', onBMouseMove);
-    document.removeEventListener('mouseup', onBMouseUp);
-    saveSettings();
-  }
-
-  breakTrack.addEventListener('touchstart', function(e) {
-    if (isRunning) return;
-    bDragStartY = e.touches[0].clientY;
-    bDragBase = breakMin;
-  }, { passive: true });
-
-  breakTrack.addEventListener('touchmove', function(e) {
-    if (isRunning) return;
-    const dy = bDragStartY - e.touches[0].clientY;
-    const steps = Math.round(dy / STEP_TOUCH);
-    breakMin = Math.max(1, Math.min(60, bDragBase + steps));
-    updateBreakDisp();
-  }, { passive: true });
-
-  breakTrack.addEventListener('touchend', function() {
-    saveSettings();
-  }, { passive: true });
 
   // -- Audio --
   function initAudio() {
@@ -1318,6 +1244,7 @@ body.cm { background: radial-gradient(ellipse at 50% 50%, rgba(167,139,250,0.06)
       waveDot.style.boxShadow = '0 0 5px var(--theta)';
     }
     waveTxt.textContent = w.name;
+    circleWaveInfo.textContent = w.name;
   }
 
   function stopWaves() {
@@ -1332,7 +1259,12 @@ body.cm { background: radial-gradient(ellipse at 50% 50%, rgba(167,139,250,0.06)
 
   // -- Ambient sound --
   function startAmbient() {
-    stopAmbient();
+    // Stop previous immediately (no fade) to avoid race condition
+    if (ambientSource) {
+      try { ambientSource.stop(); } catch(e) {}
+      ambientSource = null;
+      ambientGain = null;
+    }
     if (currentAmbient === 'off') return;
     initAudio();
     const gen = AMBIENTS[currentAmbient].gen;
@@ -1340,7 +1272,7 @@ body.cm { background: radial-gradient(ellipse at 50% 50%, rgba(167,139,250,0.06)
 
     ambientGain = audioCtx.createGain();
     ambientGain.gain.setValueAtTime(0, audioCtx.currentTime);
-    ambientGain.gain.linearRampToValueAtTime(muted ? 0 : 0.15, audioCtx.currentTime + 0.5);
+    ambientGain.gain.linearRampToValueAtTime(muted ? 0 : 0.15, audioCtx.currentTime + 0.8);
     result.output.connect(ambientGain);
     ambientGain.connect(audioCtx.destination);
 
@@ -1350,16 +1282,23 @@ body.cm { background: radial-gradient(ellipse at 50% 50%, rgba(167,139,250,0.06)
 
   function stopAmbient() {
     if (ambientSource) {
-      if (ambientGain) {
+      if (ambientGain && audioCtx) {
+        // Capture refs before nulling, so fade-out acts on the correct nodes
+        var src = ambientSource;
+        var gn = ambientGain;
+        ambientSource = null;
+        ambientGain = null;
         try {
-          ambientGain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.5);
+          gn.gain.cancelScheduledValues(audioCtx.currentTime);
+          gn.gain.setValueAtTime(gn.gain.value, audioCtx.currentTime);
+          gn.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.8);
           setTimeout(function() {
-            try { ambientSource.stop(); } catch(e) {}
-            ambientSource = null;
-            ambientGain = null;
-          }, 600);
-          return;
-        } catch(e) {}
+            try { src.stop(); } catch(e) {}
+          }, 900);
+        } catch(e) {
+          try { src.stop(); } catch(e2) {}
+        }
+        return;
       }
       try { ambientSource.stop(); } catch(e) {}
       ambientSource = null;
@@ -1429,11 +1368,9 @@ body.cm { background: radial-gradient(ellipse at 50% 50%, rgba(167,139,250,0.06)
 
   // -- Background phase tint --
   function setBodyPhase() {
-    document.body.classList.remove('cf','cb','cm');
+    document.body.classList.remove('cf','cm');
     if (isMedMode) {
       document.body.classList.add('cm');
-    } else if (isBreak) {
-      document.body.classList.add('cb');
     } else if (isRunning) {
       document.body.classList.add('cf');
     }
@@ -1441,16 +1378,12 @@ body.cm { background: radial-gradient(ellipse at 50% 50%, rgba(167,139,250,0.06)
 
   // -- Timer logic --
   function startTimer() {
-    clearSrArm();
     remaining = timerMin * 60;
     totalPhaseTime = remaining;
     isRunning = true;
-    isBreak = false;
 
     btnStart.textContent = 'Pause';
-    btnStart.classList.remove('break-btn');
-    btnSR.textContent = 'Stop';
-    btnSR.classList.remove('armed');
+    btnStop.classList.add('visible');
     hintEl.style.opacity = '0';
 
     enterImmersive();
@@ -1484,9 +1417,7 @@ body.cm { background: radial-gradient(ellipse at 50% 50%, rgba(167,139,250,0.06)
 
   function resumeTimer() {
     btnStart.textContent = 'Pause';
-    if (isBreak) {
-      setPhase('Break', 'var(--break-color)');
-    } else if (isMedMode) {
+    if (isMedMode) {
       setPhase('Meditating', 'var(--alpha)');
     } else {
       setPhase('Focus', 'var(--accent)');
@@ -1498,7 +1429,6 @@ body.cm { background: radial-gradient(ellipse at 50% 50%, rgba(167,139,250,0.06)
     clearInterval(intervalId);
     intervalId = null;
     isRunning = false;
-    isBreak = false;
     totalPhaseTime = 0;
     stopWaves();
     stopAmbient();
@@ -1508,14 +1438,13 @@ body.cm { background: radial-gradient(ellipse at 50% 50%, rgba(167,139,250,0.06)
     exitImmersive();
 
     btnStart.textContent = 'Start';
-    btnStart.classList.remove('break-btn');
-    btnSR.textContent = 'Stop';
-    btnSR.classList.remove('armed');
+    btnStop.classList.remove('visible');
     hintEl.style.opacity = '1';
     setPhase('Ready', null);
     setBodyPhase();
     updateDisp();
     updateCircleProgress();
+    circleWaveInfo.textContent = '';
   }
 
   function tick() {
@@ -1527,8 +1456,8 @@ body.cm { background: radial-gradient(ellipse at 50% 50%, rgba(167,139,250,0.06)
     updateDisp();
     updateCircleProgress();
 
-    // pulse timer number on last 10s of focus
-    if (!isBreak && remaining <= 10 && remaining > 0) {
+    // pulse timer number on last 10s
+    if (remaining <= 10 && remaining > 0) {
       dispNum.style.color = 'var(--accent)';
     } else {
       dispNum.style.color = '';
@@ -1565,58 +1494,19 @@ body.cm { background: radial-gradient(ellipse at 50% 50%, rgba(167,139,250,0.06)
     clearInterval(intervalId);
     intervalId = null;
 
-    if (!isBreak && !isMedMode) {
-      // end of focus -> transition to break
-      rounds++;
-      pts += timerMin;
-      updateRnd();
-      updateDaily(1, timerMin, 0);
+    rounds++;
+    pts += timerMin;
+    updateRnd();
+    updateDaily(1, timerMin);
 
-      var d = getDaily();
-      if (d && d.rounds === 1) {
-        updateStreak();
-      }
-
-      playNotification();
-
-      isBreak = true;
-      remaining = breakMin * 60;
-      totalPhaseTime = remaining;
-      timerSection.classList.add('break-mode');
-      setPhase('Focus done \u2014 take a break', 'var(--break-color)');
-      setBodyPhase();
-      updateDisp();
-      updateCircleProgress();
-
-      btnStart.textContent = 'Start Break';
-      btnStart.classList.add('break-btn');
-      hintEl.style.opacity = '0';
-      selectWave('theta');
-
-    } else if (isBreak) {
-      // end of break
-      updateDaily(0, 0, breakMin);
-      playNotification();
-      isBreak = false;
-      timerSection.classList.remove('break-mode');
-      stopTimer();
-      selectWave('theta');
-      setPhase('Break done \u2014 ready!', null);
-    } else {
-      // meditate session end
-      rounds++;
-      pts += timerMin;
-      updateRnd();
-      updateDaily(1, timerMin, 0);
-
-      var d2 = getDaily();
-      if (d2 && d2.rounds === 1) {
-        updateStreak();
-      }
-
-      stopTimer();
-      setPhase('Session complete', null);
+    var d = getDaily();
+    if (d && d.rounds === 1) {
+      updateStreak();
     }
+
+    playNotification();
+    stopTimer();
+    setPhase(isMedMode ? 'Session complete' : 'Focus complete', null);
   }
 
   function selectWaveAudio(id) {
@@ -1624,44 +1514,23 @@ body.cm { background: radial-gradient(ellipse at 50% 50%, rgba(167,139,250,0.06)
     if (isRunning && !muted) startWaves();
   }
 
-  // -- Btn Start --
+  // -- Btn Start: Start → Pause → Resume cycle --
   btnStart.addEventListener('click', function() {
     if (!isRunning) {
       startTimer();
     } else if (intervalId) {
       pauseTimer();
     } else {
+      // Paused → resume
       resumeTimer();
     }
   });
 
-  // -- Btn Stop/Reset --
-  btnSR.addEventListener('click', function() {
+  // -- Btn Stop: simple stop & reset --
+  btnStop.addEventListener('click', function() {
     if (!isRunning) return;
-    if (!srArmed) {
-      armSR();
-    } else {
-      clearSrArm();
-      stopTimer();
-    }
+    stopTimer();
   });
-
-  function armSR() {
-    srArmed = true;
-    btnSR.textContent = 'Reset?';
-    btnSR.classList.add('armed');
-    srTimer = setTimeout(function() {
-      clearSrArm();
-    }, 4000);
-  }
-
-  function clearSrArm() {
-    srArmed = false;
-    clearTimeout(srTimer);
-    srTimer = null;
-    btnSR.textContent = 'Stop';
-    btnSR.classList.remove('armed');
-  }
 
   // -- Init --
   loadSettings();
@@ -1675,7 +1544,6 @@ body.cm { background: radial-gradient(ellipse at 50% 50%, rgba(167,139,250,0.06)
   });
 
   updateDisp();
-  updateBreakDisp();
   updateRnd();
   setPhase('Ready', null);
   renderDaily();
