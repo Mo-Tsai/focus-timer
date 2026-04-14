@@ -35,6 +35,8 @@
   --alpha-rgb: 167,139,250;
   --theta: #34d399;
   --theta-rgb: 52,211,153;
+  --break-color: #34d399;
+  --break-rgb: 52,211,153;
   --red: rgba(220,70,55,0.9);
   --red-bg: rgba(220,70,55,0.09);
   --red-ring: rgba(220,70,55,0.35);
@@ -56,8 +58,9 @@ html, body {
   overflow: hidden;
 }
 
+body { transition: background 0.6s var(--ease); }
 body.cf { background: radial-gradient(ellipse at 60% 20%, rgba(91,156,246,0.06) 0%, #0a0a0c 65%); }
-body.cb { background: radial-gradient(ellipse at 60% 20%, rgba(52,211,153,0.06) 0%, #0a0a0c 65%); }
+body.cb { background: radial-gradient(ellipse at 50% 40%, rgba(52,211,153,0.08) 0%, #0a0a0c 60%); }
 body.cm { background: radial-gradient(ellipse at 50% 50%, rgba(167,139,250,0.06) 0%, #0a0a0c 65%); }
 
 .app {
@@ -65,11 +68,13 @@ body.cm { background: radial-gradient(ellipse at 50% 50%, rgba(167,139,250,0.06)
   display: flex;
   flex-direction: column;
   justify-content: center;
-  padding: 16px 24px;
+  padding: 12px 24px;
   max-width: 440px;
   margin: 0 auto;
   gap: 0;
   overflow: hidden;
+  position: relative;
+  z-index: 1;
 }
 
 /* -- Header -- */
@@ -77,14 +82,14 @@ body.cm { background: radial-gradient(ellipse at 50% 50%, rgba(167,139,250,0.06)
   display: flex;
   align-items: baseline;
   gap: 10px;
-  margin-bottom: 14px;
+  margin-bottom: 8px;
+  transition: opacity 0.5s var(--ease), transform 0.5s var(--ease);
 }
 .app-title {
   font-size: 17px;
   font-weight: 680;
   letter-spacing: -0.03em;
   color: var(--text);
-  text-wrap: balance;
 }
 .app-subtitle {
   font-size: 13px;
@@ -110,7 +115,7 @@ body.cm { background: radial-gradient(ellipse at 50% 50%, rgba(167,139,250,0.06)
   letter-spacing: 0.12em;
   color: var(--dim);
   line-height: 1.4;
-  margin-bottom: 10px;
+  margin-bottom: 8px;
 }
 
 /* -- Tabs -- */
@@ -120,12 +125,13 @@ body.cm { background: radial-gradient(ellipse at 50% 50%, rgba(167,139,250,0.06)
   padding: 4px;
   background: var(--surface);
   box-shadow: inset 0 0 0 1px var(--ring);
-  margin-bottom: 16px;
+  margin-bottom: 10px;
+  transition: opacity 0.5s var(--ease), transform 0.5s var(--ease);
 }
 .tab {
   flex: 1;
   border-radius: 12px;
-  min-height: 38px;
+  min-height: 34px;
   border: none;
   background: transparent;
   color: var(--muted);
@@ -154,8 +160,85 @@ body.cm { background: radial-gradient(ellipse at 50% 50%, rgba(167,139,250,0.06)
 
 /* -- Timer section -- */
 .timer-section {
-  margin-bottom: 10px;
+  margin-bottom: 6px;
+  transition: all 0.5s var(--ease);
 }
+
+/* -- Immersive running mode: circular timer -- */
+.timer-section.immersive {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 0;
+  flex: 1;
+}
+
+.circle-timer {
+  position: relative;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 240px;
+  height: 240px;
+}
+.timer-section.immersive .circle-timer {
+  display: flex;
+}
+.timer-section.immersive .t-num-wrap {
+  position: absolute;
+  margin-bottom: 0;
+}
+.timer-section.immersive .scroll-hint,
+.timer-section.immersive .break-row,
+.timer-section.immersive .eyebrow {
+  display: none;
+}
+
+.circle-svg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  transform: rotate(-90deg);
+}
+.circle-bg {
+  fill: none;
+  stroke: rgba(255,255,255,0.04);
+  stroke-width: 3;
+}
+.circle-fg {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 3;
+  stroke-linecap: round;
+  transition: stroke 0.5s var(--ease);
+}
+
+/* Phase label below circle */
+.circle-phase {
+  font-size: 13px;
+  color: var(--muted);
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+  opacity: 0;
+  text-align: center;
+  margin-top: 16px;
+  transition: opacity 0.4s var(--ease);
+}
+.timer-section.immersive .circle-phase {
+  opacity: 1;
+}
+
+/* Break styling in circle */
+.timer-section.immersive.break-mode .circle-fg {
+  stroke: var(--break-color);
+}
+.timer-section.immersive.break-mode .t-num {
+  color: var(--break-color);
+}
+
 .t-num-wrap {
   position: relative;
   display: inline-block;
@@ -163,47 +246,24 @@ body.cm { background: radial-gradient(ellipse at 50% 50%, rgba(167,139,250,0.06)
   -webkit-tap-highlight-color: transparent;
   user-select: none;
   touch-action: none;
-  margin-bottom: 4px;
+  margin-bottom: 2px;
 }
 .t-num {
-  font-size: clamp(56px, 16vw, 80px);
+  font-size: clamp(48px, 14vw, 72px);
   font-weight: 220;
   letter-spacing: -0.04em;
   font-variant-numeric: tabular-nums;
   color: var(--text);
-  line-height: 1.05;
-  transition: color 0.3s var(--ease);
+  line-height: 1;
+  transition: color 0.5s var(--ease);
 }
 .t-num.hl { color: var(--accent); }
 .t-colon {
   opacity: 0.55;
 }
 
-/* -- Progress arc -- */
-.progress-arc-wrap {
-  display: block;
-  width: 120px;
-  height: 6px;
-  margin-top: 4px;
-  opacity: 0;
-  transition: opacity 0.3s var(--ease);
-}
-.progress-arc-wrap.visible {
-  opacity: 1;
-}
-.progress-arc-bg {
-  fill: none;
-  stroke: rgba(255,255,255,0.06);
-  stroke-width: 3;
-  stroke-linecap: round;
-}
-.progress-arc-fg {
-  fill: none;
-  stroke: var(--accent);
-  stroke-width: 3;
-  stroke-linecap: round;
-  transition: stroke 0.3s var(--ease);
-}
+/* old flat progress arc - hidden now, replaced by circle */
+.progress-arc-wrap { display: none; }
 
 .scroll-hint {
   font-size: 11px;
@@ -213,6 +273,7 @@ body.cm { background: radial-gradient(ellipse at 50% 50%, rgba(167,139,250,0.06)
   display: flex;
   align-items: center;
   gap: 5px;
+  transition: opacity 0.4s var(--ease);
 }
 .scroll-hint-arrow {
   font-size: 13px;
@@ -224,7 +285,8 @@ body.cm { background: radial-gradient(ellipse at 50% 50%, rgba(167,139,250,0.06)
   display: flex;
   align-items: center;
   gap: 10px;
-  margin-top: 8px;
+  margin-top: 4px;
+  transition: opacity 0.4s var(--ease);
 }
 .b-label {
   font-size: 12px;
@@ -238,7 +300,7 @@ body.cm { background: radial-gradient(ellipse at 50% 50%, rgba(167,139,250,0.06)
   gap: 10px;
   padding: 0 16px;
   border-radius: 9999px;
-  min-height: 44px;
+  min-height: 38px;
   background: var(--surface);
   box-shadow: inset 0 0 0 1px var(--ring);
   cursor: ns-resize;
@@ -265,7 +327,24 @@ body.cm { background: radial-gradient(ellipse at 50% 50%, rgba(167,139,250,0.06)
 .divider {
   height: 1px;
   background: var(--divider);
-  margin: 10px 0;
+  margin: 6px 0;
+  transition: opacity 0.4s var(--ease);
+}
+
+/* -- Collapsible panels (fade out when running) -- */
+.collapsible {
+  transition: opacity 0.5s var(--ease), max-height 0.5s var(--ease), margin 0.4s var(--ease), transform 0.5s var(--ease);
+  overflow: hidden;
+  max-height: 500px;
+  opacity: 1;
+  transform: translateY(0);
+}
+.collapsible.hidden {
+  opacity: 0;
+  max-height: 0;
+  margin: 0;
+  transform: translateY(-8px);
+  pointer-events: none;
 }
 
 /* -- Status row -- */
@@ -274,6 +353,7 @@ body.cm { background: radial-gradient(ellipse at 50% 50%, rgba(167,139,250,0.06)
   align-items: center;
   justify-content: space-between;
   gap: 16px;
+  transition: opacity 0.4s var(--ease);
 }
 .phase-wrap {
   display: flex;
@@ -334,13 +414,13 @@ body.cm { background: radial-gradient(ellipse at 50% 50%, rgba(167,139,250,0.06)
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 6px;
-  margin-bottom: 8px;
+  margin-bottom: 6px;
 }
 .wb {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  padding: 10px 12px 8px;
+  padding: 8px 10px 6px;
   background: var(--surface);
   box-shadow: inset 0 0 0 1px var(--ring);
   border-radius: 14px;
@@ -352,7 +432,7 @@ body.cm { background: radial-gradient(ellipse at 50% 50%, rgba(167,139,250,0.06)
   cursor: pointer;
   transition: all 0.22s var(--ease);
   text-align: left;
-  min-height: 44px;
+  min-height: 38px;
   -webkit-tap-highlight-color: transparent;
   user-select: none;
 }
@@ -421,7 +501,7 @@ body.cm { background: radial-gradient(ellipse at 50% 50%, rgba(167,139,250,0.06)
 }
 .ambient-grid {
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
+  grid-template-columns: repeat(4, 1fr);
   gap: 6px;
   margin-bottom: 0;
 }
@@ -430,7 +510,7 @@ body.cm { background: radial-gradient(ellipse at 50% 50%, rgba(167,139,250,0.06)
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 8px 4px;
+  padding: 6px 4px;
   background: var(--surface);
   box-shadow: inset 0 0 0 1px var(--ring);
   border-radius: 14px;
@@ -442,7 +522,7 @@ body.cm { background: radial-gradient(ellipse at 50% 50%, rgba(167,139,250,0.06)
   cursor: pointer;
   transition: all 0.22s var(--ease);
   text-align: center;
-  min-height: 44px;
+  min-height: 36px;
   -webkit-tap-highlight-color: transparent;
   user-select: none;
 }
@@ -457,7 +537,9 @@ body.cm { background: radial-gradient(ellipse at 50% 50%, rgba(167,139,250,0.06)
 .controls {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 8px;
+  margin-top: 6px;
+  transition: opacity 0.4s var(--ease);
 }
 .controls-row {
   display: flex;
@@ -519,6 +601,19 @@ body.cm { background: radial-gradient(ellipse at 50% 50%, rgba(167,139,250,0.06)
   color: #0a0a0c;
 }
 
+/* Break mode: start button turns green */
+.btn-start.break-btn {
+  background: rgba(52,211,153,0.9);
+  color: #0a0a0c;
+  box-shadow:
+    0 0 0 1px rgba(52,211,153,0.3),
+    0 4px 20px rgba(0,0,0,0.4),
+    inset 0 1px 0 rgba(255,255,255,0.2);
+}
+.btn-start.break-btn:hover:not(:active) {
+  background: rgba(52,211,153,1);
+}
+
 .btn-sr {
   min-width: 80px;
   transition: all 0.18s var(--ease-fast), background 0.25s var(--ease), color 0.25s var(--ease);
@@ -559,13 +654,7 @@ body.cm { background: radial-gradient(ellipse at 50% 50%, rgba(167,139,250,0.06)
   50% { transform: translate(-50%, -50%) scale(1.35); opacity: 0.9; }
 }
 
-/* app content sits above breathing ring */
-.app { position: relative; z-index: 1; }
-
-/* -- Progress / running indicator on timer -- */
-.t-num-wrap.running .t-num {
-  animation: timerPulse 2s ease-in-out infinite;
-}
+/* -- Running mode pulse -- */
 @keyframes timerPulse {
   0%, 100% { opacity: 1; }
   50% { opacity: 0.75; }
@@ -583,14 +672,14 @@ body.cm { background: radial-gradient(ellipse at 50% 50%, rgba(167,139,250,0.06)
 <div class="app">
 
   <!-- Header -->
-  <div class="header">
+  <div class="header collapsible" id="headerEl">
     <span class="app-title">Focus Timer</span>
     <span class="app-subtitle">binaural beats + pomodoro</span>
     <span class="streak-badge" id="streakBadge"></span>
   </div>
 
   <!-- Tabs -->
-  <div class="tabs" role="tablist">
+  <div class="tabs collapsible" id="tabsEl" role="tablist">
     <button class="tab on" id="tabFocus" role="tab" aria-selected="true" aria-controls="focusPanel">
       <span class="tab-icon">&#9678;</span> Focus
     </button>
@@ -600,16 +689,23 @@ body.cm { background: radial-gradient(ellipse at 50% 50%, rgba(167,139,250,0.06)
   </div>
 
   <!-- Timer section -->
-  <div class="timer-section">
+  <div class="timer-section" id="timerSection">
     <div class="eyebrow" id="timerEyebrow">Work Duration</div>
-    <div class="t-num-wrap" id="mainTrack" aria-label="Timer: drag up/down to set minutes">
-      <div class="t-num" id="dispNum">25<span class="t-colon">:</span>00</div>
-      <!-- Progress arc -->
-      <svg class="progress-arc-wrap" id="progressArc" viewBox="0 0 120 10" preserveAspectRatio="xMidYMid meet">
-        <path class="progress-arc-bg" d="M 4 8 A 56 56 0 0 1 116 8" />
-        <path class="progress-arc-fg" id="progressArcFg" d="M 4 8 A 56 56 0 0 1 116 8" />
+
+    <!-- Circular progress (visible when running) -->
+    <div class="circle-timer" id="circleTimer">
+      <svg class="circle-svg" viewBox="0 0 240 240">
+        <circle class="circle-bg" cx="120" cy="120" r="108" />
+        <circle class="circle-fg" id="circleFg" cx="120" cy="120" r="108" stroke-dasharray="0 678.58" />
       </svg>
     </div>
+
+    <div class="t-num-wrap" id="mainTrack" aria-label="Timer: drag up/down to set minutes">
+      <div class="t-num" id="dispNum">25<span class="t-colon">:</span>00</div>
+    </div>
+
+    <div class="circle-phase" id="circlePhase"></div>
+
     <div class="scroll-hint" id="hint">
       <span class="scroll-hint-arrow">&UpDownArrow;</span>
       <span>drag or scroll to adjust</span>
@@ -626,10 +722,10 @@ body.cm { background: radial-gradient(ellipse at 50% 50%, rgba(167,139,250,0.06)
   </div>
 
   <!-- Divider -->
-  <div class="divider"></div>
+  <div class="divider collapsible" id="div1"></div>
 
   <!-- Status row -->
-  <div class="status-row">
+  <div class="status-row collapsible" id="statusRow">
     <div class="phase-wrap" id="phaseEl">
       <span class="phase-pip" id="phasePip"></span>
       <span class="phase-txt" id="phaseTxt">Ready</span>
@@ -641,18 +737,18 @@ body.cm { background: radial-gradient(ellipse at 50% 50%, rgba(167,139,250,0.06)
   </div>
 
   <!-- Divider -->
-  <div class="divider"></div>
+  <div class="divider collapsible" id="div2"></div>
 
   <!-- Daily stats -->
-  <div class="daily-stats" id="dailyStats">
+  <div class="daily-stats collapsible" id="dailyStats">
     <span class="phase-txt" id="dailyTxt"></span>
   </div>
 
   <!-- Divider -->
-  <div class="divider"></div>
+  <div class="divider collapsible" id="div3"></div>
 
   <!-- Wave section -->
-  <div class="wave-section">
+  <div class="wave-section collapsible" id="waveSection">
     <div class="eyebrow">Binaural Waves</div>
     <div class="wave-grid">
       <button class="wb beta on" id="waveB" aria-pressed="true">
@@ -671,32 +767,24 @@ body.cm { background: radial-gradient(ellipse at 50% 50%, rgba(167,139,250,0.06)
         <span class="wb-hz">4&ndash;7 Hz</span>
       </button>
     </div>
-    <div class="wave-status">
+    <div class="wave-status" style="display:none">
       <span class="wave-dot" id="waveDot"></span>
       <span id="waveTxt">Waves off</span>
     </div>
   </div>
 
-  <!-- Divider -->
-  <div class="divider"></div>
-
-  <!-- Ambient Sound section -->
-  <div class="ambient-section">
+  <div class="ambient-section collapsible" id="ambientSection">
     <div class="eyebrow">Ambient Sound</div>
     <div class="ambient-grid">
       <button class="ab on" id="ambOff">Off</button>
-      <button class="ab" id="ambRain">Rain</button>
-      <button class="ab" id="ambBrown">Brown Noise</button>
-      <button class="ab" id="ambCafe">Caf&eacute;</button>
       <button class="ab" id="ambForest">Forest</button>
+      <button class="ab" id="ambRain">Rain</button>
+      <button class="ab" id="ambOcean">Ocean</button>
     </div>
   </div>
 
-  <!-- Divider -->
-  <div class="divider"></div>
-
   <!-- Controls -->
-  <div class="controls">
+  <div class="controls" id="controlsEl">
     <div class="controls-row">
       <button class="btn btn-mute" id="muteBtn" aria-label="Mute/unmute">&#128276;</button>
       <button class="btn btn-start" id="btnStart">Start</button>
@@ -769,67 +857,112 @@ body.cm { background: radial-gradient(ellipse at 50% 50%, rgba(167,139,250,0.06)
     return { source: src, output: src };
   }
 
-  function makeCafe(ctx) {
-    const brown = makeBrown(ctx);
-    const filter = ctx.createBiquadFilter();
-    filter.type = 'bandpass';
-    filter.frequency.value = 400;
-    filter.Q.value = 0.5;
-    brown.output.connect(filter);
-    return { source: brown.source, output: filter };
-  }
-
   function makeForest(ctx) {
     const brown = makeBrown(ctx);
-    const filter = ctx.createBiquadFilter();
-    filter.type = 'highpass';
-    filter.frequency.value = 200;
-    brown.output.connect(filter);
-    return { source: brown.source, output: filter };
+    const hp = ctx.createBiquadFilter();
+    hp.type = 'highpass';
+    hp.frequency.value = 200;
+    brown.output.connect(hp);
+
+    const buf2 = ctx.createBuffer(1, ctx.sampleRate * 2, ctx.sampleRate);
+    const d2 = buf2.getChannelData(0);
+    for (let i = 0; i < d2.length; i++) d2[i] = Math.random() * 2 - 1;
+    const src2 = ctx.createBufferSource();
+    src2.buffer = buf2;
+    src2.loop = true;
+    const bp = ctx.createBiquadFilter();
+    bp.type = 'bandpass';
+    bp.frequency.value = 3000;
+    bp.Q.value = 2;
+    src2.connect(bp);
+    const g2 = ctx.createGain();
+    g2.gain.value = 0.08;
+    bp.connect(g2);
+
+    const merger = ctx.createGain();
+    hp.connect(merger);
+    g2.connect(merger);
+
+    const origStart = brown.source.start.bind(brown.source);
+    brown.source.start = function() { origStart(); src2.start(); };
+    const origStop = brown.source.stop.bind(brown.source);
+    brown.source.stop = function() { origStop(); try { src2.stop(); } catch(e){} };
+
+    return { source: brown.source, output: merger };
+  }
+
+  function makeOcean(ctx) {
+    const brown = makeBrown(ctx);
+    const lp = ctx.createBiquadFilter();
+    lp.type = 'lowpass';
+    lp.frequency.value = 500;
+    brown.output.connect(lp);
+
+    const lfo = ctx.createOscillator();
+    lfo.type = 'sine';
+    lfo.frequency.value = 0.12;
+    const lfoGain = ctx.createGain();
+    lfoGain.gain.value = 0.4;
+    lfo.connect(lfoGain);
+
+    const vca = ctx.createGain();
+    vca.gain.value = 0.6;
+    lfoGain.connect(vca.gain);
+    lp.connect(vca);
+
+    const origStart = brown.source.start.bind(brown.source);
+    brown.source.start = function() { origStart(); lfo.start(); };
+    const origStop = brown.source.stop.bind(brown.source);
+    brown.source.stop = function() { origStop(); try { lfo.stop(); } catch(e){} };
+
+    return { source: brown.source, output: vca };
   }
 
   const AMBIENTS = {
-    off:    { label: 'Off',         gen: null },
-    rain:   { label: 'Rain',        gen: makeRain },
-    brown:  { label: 'Brown Noise', gen: makeBrown },
-    cafe:   { label: 'Caf\u00e9',   gen: makeCafe },
-    forest: { label: 'Forest',      gen: makeForest },
+    off:    { label: 'Off',    gen: null },
+    forest: { label: 'Forest', gen: makeForest },
+    rain:   { label: 'Rain',   gen: makeRain },
+    ocean:  { label: 'Ocean',  gen: makeOcean },
   };
 
   // -- Elements --
-  const dispNum     = document.getElementById('dispNum');
-  const mainTrack   = document.getElementById('mainTrack');
-  const breakNumEl  = document.getElementById('breakNum');
-  const breakTrack  = document.getElementById('breakTrack');
-  const breakRow    = document.getElementById('breakRow');
-  const btnStart    = document.getElementById('btnStart');
-  const btnSR       = document.getElementById('btnSR');
-  const muteBtn     = document.getElementById('muteBtn');
-  const rndEl       = document.getElementById('rndEl');
-  const hintEl      = document.getElementById('hint');
-  const tabFocus    = document.getElementById('tabFocus');
-  const tabMed      = document.getElementById('tabMed');
-  const phasePip    = document.getElementById('phasePip');
-  const phaseTxt    = document.getElementById('phaseTxt');
-  const waveB       = document.getElementById('waveB');
-  const waveA       = document.getElementById('waveA');
-  const waveTheta   = document.getElementById('waveTheta');
-  const waveDot     = document.getElementById('waveDot');
-  const waveTxtEl   = document.getElementById('waveTxt');
+  const tabFocus = document.getElementById('tabFocus');
+  const tabMed = document.getElementById('tabMed');
+  const timerSection = document.getElementById('timerSection');
   const timerEyebrow = document.getElementById('timerEyebrow');
-  const breathRing  = document.getElementById('breathingRing');
-  const progressArc = document.getElementById('progressArc');
-  const progressArcFg = document.getElementById('progressArcFg');
-  const dailyTxt    = document.getElementById('dailyTxt');
+  const mainTrack = document.getElementById('mainTrack');
+  const dispNum = document.getElementById('dispNum');
+  const hintEl = document.getElementById('hint');
+  const breakRow = document.getElementById('breakRow');
+  const breakTrack = document.getElementById('breakTrack');
+  const breakNumEl = document.getElementById('breakNum');
+  const phasePip = document.getElementById('phasePip');
+  const phaseTxt = document.getElementById('phaseTxt');
+  const rndEl = document.getElementById('rndEl');
+  const dailyTxt = document.getElementById('dailyTxt');
   const streakBadge = document.getElementById('streakBadge');
+  const muteBtn = document.getElementById('muteBtn');
+  const btnStart = document.getElementById('btnStart');
+  const btnSR = document.getElementById('btnSR');
+  const breathRing = document.getElementById('breathingRing');
+  const waveDot = document.getElementById('waveDot');
+  const waveTxt = document.getElementById('waveTxt');
+  const waveB = document.getElementById('waveB');
+  const waveA = document.getElementById('waveA');
+  const waveTheta = document.getElementById('waveTheta');
+  const circleTimer = document.getElementById('circleTimer');
+  const circleFg = document.getElementById('circleFg');
+  const circlePhase = document.getElementById('circlePhase');
+
+  // All collapsible panels
+  const collapsibles = document.querySelectorAll('.collapsible');
 
   // Ambient buttons
   const ambBtns = {
     off: document.getElementById('ambOff'),
-    rain: document.getElementById('ambRain'),
-    brown: document.getElementById('ambBrown'),
-    cafe: document.getElementById('ambCafe'),
     forest: document.getElementById('ambForest'),
+    rain: document.getElementById('ambRain'),
+    ocean: document.getElementById('ambOcean'),
   };
 
   // -- localStorage helpers --
@@ -844,7 +977,7 @@ body.cm { background: radial-gradient(ellipse at 50% 50%, rgba(167,139,250,0.06)
     return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
   }
 
-  // -- Task 5: Settings memory --
+  // -- Settings memory --
   function saveSettings() {
     const s = { timerMin, breakMin, wave: currentWave, ambient: currentAmbient };
     try { localStorage.setItem('focustimer_settings', JSON.stringify(s)); } catch(e) {}
@@ -862,7 +995,7 @@ body.cm { background: radial-gradient(ellipse at 50% 50%, rgba(167,139,250,0.06)
     } catch(e) {}
   }
 
-  // -- Task 2: Daily record --
+  // -- Daily record --
   function getDaily() {
     try {
       const raw = localStorage.getItem('focustimer_daily');
@@ -895,7 +1028,7 @@ body.cm { background: radial-gradient(ellipse at 50% 50%, rgba(167,139,250,0.06)
     dailyTxt.textContent = 'Today: ' + d.rounds + ' rounds \u00b7 ' + d.focusMin + ' min focused';
   }
 
-  // -- Task 6: Streak --
+  // -- Streak --
   function getStreak() {
     try {
       const raw = localStorage.getItem('focustimer_streak');
@@ -946,6 +1079,7 @@ body.cm { background: radial-gradient(ellipse at 50% 50%, rgba(167,139,250,0.06)
 
   function setPhase(text, color) {
     phaseTxt.textContent = text;
+    circlePhase.textContent = text;
     if (color) {
       phasePip.style.background = color;
       phasePip.style.boxShadow = '0 0 6px ' + color;
@@ -963,19 +1097,33 @@ body.cm { background: radial-gradient(ellipse at 50% 50%, rgba(167,139,250,0.06)
     breakNumEl.textContent = breakMin + ' min';
   }
 
-  // -- Task 3: Progress arc --
-  function updateProgressArc() {
+  // -- Circular progress --
+  const CIRCLE_R = 108;
+  const CIRCLE_C = 2 * Math.PI * CIRCLE_R; // ~678.58
+
+  function updateCircleProgress() {
     if (!isRunning || totalPhaseTime <= 0) {
-      progressArc.classList.remove('visible');
+      circleFg.setAttribute('stroke-dasharray', '0 ' + CIRCLE_C);
       return;
     }
-    progressArc.classList.add('visible');
     const progress = 1 - (remaining / totalPhaseTime);
-    // Arc total length (approximate for the path)
-    const arcLen = Math.PI * 56; // semicircle circumference
-    const dash = progress * arcLen;
-    progressArcFg.style.strokeDasharray = dash + ' ' + arcLen;
-    progressArcFg.style.stroke = isBreak ? 'var(--theta)' : 'var(--accent)';
+    const dash = progress * CIRCLE_C;
+    circleFg.setAttribute('stroke-dasharray', dash + ' ' + CIRCLE_C);
+    circleFg.style.stroke = isBreak ? 'var(--break-color)' : 'var(--accent)';
+  }
+
+  // -- Immersive mode (panels collapse when running) --
+  function enterImmersive() {
+    collapsibles.forEach(function(el) { el.classList.add('hidden'); });
+    timerSection.classList.add('immersive');
+    if (isBreak) {
+      timerSection.classList.add('break-mode');
+    }
+  }
+
+  function exitImmersive() {
+    collapsibles.forEach(function(el) { el.classList.remove('hidden'); });
+    timerSection.classList.remove('immersive', 'break-mode');
   }
 
   // -- Mode switching --
@@ -993,7 +1141,6 @@ body.cm { background: radial-gradient(ellipse at 50% 50%, rgba(167,139,250,0.06)
       document.body.classList.add('cm');
       document.body.classList.remove('cf','cb');
       breathRing.classList.add('active');
-      if (isRunning) breathRing.classList.add('active');
     } else {
       timerEyebrow.textContent = 'Work Duration';
       document.body.classList.remove('cm');
@@ -1170,17 +1317,17 @@ body.cm { background: radial-gradient(ellipse at 50% 50%, rgba(167,139,250,0.06)
       waveDot.style.background = 'var(--theta)';
       waveDot.style.boxShadow = '0 0 5px var(--theta)';
     }
-    waveTxtEl.textContent = w.name;
+    waveTxt.textContent = w.name;
   }
 
   function stopWaves() {
-    if (oscLeft) { try { oscLeft.stop(); } catch(e){} oscLeft = null; }
-    if (oscRight) { try { oscRight.stop(); } catch(e){} oscRight = null; }
+    if (oscLeft) { try { oscLeft.stop(); } catch(e) {} oscLeft = null; }
+    if (oscRight) { try { oscRight.stop(); } catch(e) {} oscRight = null; }
     if (gainNode) { gainNode = null; }
     waveDot.classList.remove('active');
     waveDot.style.background = '';
     waveDot.style.boxShadow = '';
-    waveTxtEl.textContent = 'Waves off';
+    waveTxt.textContent = 'Waves off';
   }
 
   // -- Ambient sound --
@@ -1189,29 +1336,34 @@ body.cm { background: radial-gradient(ellipse at 50% 50%, rgba(167,139,250,0.06)
     if (currentAmbient === 'off') return;
     initAudio();
     const gen = AMBIENTS[currentAmbient].gen;
-    if (!gen) return;
     const result = gen(audioCtx);
+
     ambientGain = audioCtx.createGain();
     ambientGain.gain.setValueAtTime(0, audioCtx.currentTime);
-    ambientGain.gain.linearRampToValueAtTime(muted ? 0 : 0.15, audioCtx.currentTime + 0.3);
+    ambientGain.gain.linearRampToValueAtTime(muted ? 0 : 0.15, audioCtx.currentTime + 0.5);
     result.output.connect(ambientGain);
     ambientGain.connect(audioCtx.destination);
-    result.source.start();
+
     ambientSource = result.source;
+    ambientSource.start();
   }
 
   function stopAmbient() {
     if (ambientSource) {
       if (ambientGain) {
         try {
-          ambientGain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.3);
+          ambientGain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.5);
+          setTimeout(function() {
+            try { ambientSource.stop(); } catch(e) {}
+            ambientSource = null;
+            ambientGain = null;
+          }, 600);
+          return;
         } catch(e) {}
       }
-      setTimeout(function() {
-        try { ambientSource.stop(); } catch(e) {}
-        ambientSource = null;
-        ambientGain = null;
-      }, 350);
+      try { ambientSource.stop(); } catch(e) {}
+      ambientSource = null;
+      ambientGain = null;
     }
   }
 
@@ -1227,10 +1379,9 @@ body.cm { background: radial-gradient(ellipse at 50% 50%, rgba(167,139,250,0.06)
   }
 
   ambBtns.off.addEventListener('click', function() { selectAmbient('off'); });
-  ambBtns.rain.addEventListener('click', function() { selectAmbient('rain'); });
-  ambBtns.brown.addEventListener('click', function() { selectAmbient('brown'); });
-  ambBtns.cafe.addEventListener('click', function() { selectAmbient('cafe'); });
   ambBtns.forest.addEventListener('click', function() { selectAmbient('forest'); });
+  ambBtns.rain.addEventListener('click', function() { selectAmbient('rain'); });
+  ambBtns.ocean.addEventListener('click', function() { selectAmbient('ocean'); });
 
   // -- Wave buttons --
   function selectWave(id) {
@@ -1297,10 +1448,12 @@ body.cm { background: radial-gradient(ellipse at 50% 50%, rgba(167,139,250,0.06)
     isBreak = false;
 
     btnStart.textContent = 'Pause';
+    btnStart.classList.remove('break-btn');
     btnSR.textContent = 'Stop';
     btnSR.classList.remove('armed');
     hintEl.style.opacity = '0';
-    mainTrack.classList.add('running');
+
+    enterImmersive();
 
     if (isMedMode) {
       setPhase('Meditating', 'var(--alpha)');
@@ -1318,7 +1471,7 @@ body.cm { background: radial-gradient(ellipse at 50% 50%, rgba(167,139,250,0.06)
       startAmbient();
     }
 
-    updateProgressArc();
+    updateCircleProgress();
     intervalId = setInterval(tick, 1000);
   }
 
@@ -1332,7 +1485,7 @@ body.cm { background: radial-gradient(ellipse at 50% 50%, rgba(167,139,250,0.06)
   function resumeTimer() {
     btnStart.textContent = 'Pause';
     if (isBreak) {
-      setPhase('Break', 'var(--theta)');
+      setPhase('Break', 'var(--break-color)');
     } else if (isMedMode) {
       setPhase('Meditating', 'var(--alpha)');
     } else {
@@ -1350,17 +1503,19 @@ body.cm { background: radial-gradient(ellipse at 50% 50%, rgba(167,139,250,0.06)
     stopWaves();
     stopAmbient();
     releaseWakeLock();
-    mainTrack.classList.remove('running');
     breathRing.classList.remove('active');
 
+    exitImmersive();
+
     btnStart.textContent = 'Start';
+    btnStart.classList.remove('break-btn');
     btnSR.textContent = 'Stop';
     btnSR.classList.remove('armed');
     hintEl.style.opacity = '1';
     setPhase('Ready', null);
     setBodyPhase();
     updateDisp();
-    updateProgressArc();
+    updateCircleProgress();
   }
 
   function tick() {
@@ -1370,7 +1525,7 @@ body.cm { background: radial-gradient(ellipse at 50% 50%, rgba(167,139,250,0.06)
     }
     remaining--;
     updateDisp();
-    updateProgressArc();
+    updateCircleProgress();
 
     // pulse timer number on last 10s of focus
     if (!isBreak && remaining <= 10 && remaining > 0) {
@@ -1384,22 +1539,23 @@ body.cm { background: radial-gradient(ellipse at 50% 50%, rgba(167,139,250,0.06)
     initAudio();
     var ctx = audioCtx;
     var now = ctx.currentTime;
-    [880, 660].forEach(function(freq, i) {
+
+    // Soft chime - two gentle tones
+    [660, 880].forEach(function(freq, i) {
       var osc = ctx.createOscillator();
       var g = ctx.createGain();
       osc.connect(g);
       g.connect(ctx.destination);
       osc.type = 'sine';
       osc.frequency.value = freq;
-      var t = now + i * 0.35;
+      var t = now + i * 0.3;
       g.gain.setValueAtTime(0, t);
-      g.gain.linearRampToValueAtTime(0.4, t + 0.01);
-      g.gain.exponentialRampToValueAtTime(0.001, t + 0.8);
+      g.gain.linearRampToValueAtTime(0.25, t + 0.05);
+      g.gain.exponentialRampToValueAtTime(0.001, t + 1.2);
       osc.start(t);
-      osc.stop(t + 0.8);
+      osc.stop(t + 1.2);
     });
 
-    // Task 4: Vibration feedback
     if (navigator.vibrate) {
       navigator.vibrate([200, 100, 200]);
     }
@@ -1410,13 +1566,12 @@ body.cm { background: radial-gradient(ellipse at 50% 50%, rgba(167,139,250,0.06)
     intervalId = null;
 
     if (!isBreak && !isMedMode) {
-      // end of focus -> notify and wait for user to start break
+      // end of focus -> transition to break
       rounds++;
       pts += timerMin;
       updateRnd();
       updateDaily(1, timerMin, 0);
 
-      // Streak: first round of the day
       var d = getDaily();
       if (d && d.rounds === 1) {
         updateStreak();
@@ -1427,20 +1582,23 @@ body.cm { background: radial-gradient(ellipse at 50% 50%, rgba(167,139,250,0.06)
       isBreak = true;
       remaining = breakMin * 60;
       totalPhaseTime = remaining;
-      setPhase('Focus done \u2014 press to start break', 'var(--theta)');
+      timerSection.classList.add('break-mode');
+      setPhase('Focus done \u2014 take a break', 'var(--break-color)');
       setBodyPhase();
       updateDisp();
-      updateProgressArc();
+      updateCircleProgress();
 
       btnStart.textContent = 'Start Break';
+      btnStart.classList.add('break-btn');
       hintEl.style.opacity = '0';
       selectWave('theta');
 
     } else if (isBreak) {
-      // end of break -> notify, stay on Deep, stop
+      // end of break
       updateDaily(0, 0, breakMin);
       playNotification();
       isBreak = false;
+      timerSection.classList.remove('break-mode');
       stopTimer();
       selectWave('theta');
       setPhase('Break done \u2014 ready!', null);
@@ -1483,7 +1641,6 @@ body.cm { background: radial-gradient(ellipse at 50% 50%, rgba(167,139,250,0.06)
     if (!srArmed) {
       armSR();
     } else {
-      // confirmed reset
       clearSrArm();
       stopTimer();
     }
@@ -1523,7 +1680,7 @@ body.cm { background: radial-gradient(ellipse at 50% 50%, rgba(167,139,250,0.06)
   setPhase('Ready', null);
   renderDaily();
   renderStreak();
-  updateProgressArc();
+  updateCircleProgress();
 
   // Ensure hint visible on start
   hintEl.style.opacity = '1';
