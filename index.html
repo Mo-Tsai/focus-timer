@@ -822,45 +822,54 @@ body.cm { background: radial-gradient(ellipse at 50% 50%, rgba(167,139,250,0.06)
     return src;
   }
 
-  // Rain: soft pink-ish noise, gentle and warm
+  // Rain: white noise shaped to sound like steady rain
+  // Key: keep some mid-high frequencies for the "shhh" texture
   function makeRain(ctx) {
     var src = makeBufferSource(ctx, makeNoiseBuffer(ctx, 5));
-    // Two cascaded lowpass filters for a steeper, softer rolloff
-    var lp1 = ctx.createBiquadFilter();
-    lp1.type = 'lowpass';
-    lp1.frequency.value = 600;
-    lp1.Q.value = 0.5;
-    var lp2 = ctx.createBiquadFilter();
-    lp2.type = 'lowpass';
-    lp2.frequency.value = 400;
-    lp2.Q.value = 0.3;
-    src.connect(lp1);
-    lp1.connect(lp2);
-    return { source: src, output: lp2 };
-  }
-
-  // Forest: warm brown noise base + very subtle high shimmer
-  function makeForest(ctx) {
-    var src1 = makeBufferSource(ctx, makeBrownBuffer(ctx, 5));
+    // Gentle rolloff at top end, but keep 200-2000 Hz range alive
+    var lp = ctx.createBiquadFilter();
+    lp.type = 'lowpass';
+    lp.frequency.value = 2500;
+    lp.Q.value = 0.3;
+    // Cut sub-bass rumble
     var hp = ctx.createBiquadFilter();
     hp.type = 'highpass';
-    hp.frequency.value = 80;
+    hp.frequency.value = 150;
+    hp.Q.value = 0.3;
+    src.connect(hp);
+    hp.connect(lp);
+    return { source: src, output: lp };
+  }
+
+  // Forest: pink-ish noise (nature-like spectrum) + subtle texture
+  function makeForest(ctx) {
+    var src1 = makeBufferSource(ctx, makeNoiseBuffer(ctx, 5));
+    // Pink noise approximation: -3dB/octave via cascaded filters
+    var hp = ctx.createBiquadFilter();
+    hp.type = 'highpass';
+    hp.frequency.value = 100;
     hp.Q.value = 0.3;
     var lp = ctx.createBiquadFilter();
     lp.type = 'lowpass';
-    lp.frequency.value = 1200;
+    lp.frequency.value = 3000;
     lp.Q.value = 0.3;
+    // Shelf to tilt spectrum: boost lows, reduce highs
+    var shelf = ctx.createBiquadFilter();
+    shelf.type = 'lowshelf';
+    shelf.frequency.value = 500;
+    shelf.gain.value = 6;
     src1.connect(hp);
-    hp.connect(lp);
+    hp.connect(shelf);
+    shelf.connect(lp);
 
-    // Subtle high-freq texture (very quiet, like distant crickets)
+    // Quiet high-freq layer for "life" texture
     var src2 = makeBufferSource(ctx, makeNoiseBuffer(ctx, 5));
     var bp = ctx.createBiquadFilter();
     bp.type = 'bandpass';
-    bp.frequency.value = 4000;
-    bp.Q.value = 0.5; // wide and soft, not sharp
+    bp.frequency.value = 5000;
+    bp.Q.value = 0.3;
     var g2 = ctx.createGain();
-    g2.gain.value = 0.025; // very quiet
+    g2.gain.value = 0.04;
     src2.connect(bp);
     bp.connect(g2);
 
@@ -877,25 +886,31 @@ body.cm { background: radial-gradient(ellipse at 50% 50%, rgba(167,139,250,0.06)
     return { source: src1, output: mix };
   }
 
-  // Ocean: gentle brown noise with slow, subtle volume swell
+  // Ocean: filtered noise with slow wave-like volume modulation
   function makeOcean(ctx) {
-    var src = makeBufferSource(ctx, makeBrownBuffer(ctx, 5));
+    var src = makeBufferSource(ctx, makeNoiseBuffer(ctx, 5));
+    // Shape: cut highs, keep warm mid-low
     var lp = ctx.createBiquadFilter();
     lp.type = 'lowpass';
-    lp.frequency.value = 350;
+    lp.frequency.value = 800;
     lp.Q.value = 0.3;
-    src.connect(lp);
+    var hp = ctx.createBiquadFilter();
+    hp.type = 'highpass';
+    hp.frequency.value = 80;
+    hp.Q.value = 0.3;
+    src.connect(hp);
+    hp.connect(lp);
 
-    // Gentle LFO: slow wave cycle (~8s), small amplitude swing
+    // Slow LFO for wave rhythm
     var lfo = ctx.createOscillator();
     lfo.type = 'sine';
-    lfo.frequency.value = 0.08; // ~12s full cycle, very slow
+    lfo.frequency.value = 0.1; // ~10s wave cycle
     var lfoGain = ctx.createGain();
-    lfoGain.gain.value = 0.12; // subtle volume variation (±12%)
+    lfoGain.gain.value = 0.15; // moderate swell
     lfo.connect(lfoGain);
 
     var vca = ctx.createGain();
-    vca.gain.value = 0.5; // base volume, swings 0.38 ~ 0.62
+    vca.gain.value = 0.55;
     lfoGain.connect(vca.gain);
     lp.connect(vca);
 
@@ -1206,7 +1221,7 @@ body.cm { background: radial-gradient(ellipse at 50% 50%, rgba(167,139,250,0.06)
     stopWaves();
     const w = WAVES[currentWave];
     gainNode = audioCtx.createGain();
-    gainNode.gain.value = muted ? 0 : 0.08;
+    gainNode.gain.value = muted ? 0 : 0.04;
 
     const merger = audioCtx.createChannelMerger(2);
     merger.connect(gainNode);
@@ -1272,7 +1287,7 @@ body.cm { background: radial-gradient(ellipse at 50% 50%, rgba(167,139,250,0.06)
 
     ambientGain = audioCtx.createGain();
     ambientGain.gain.setValueAtTime(0, audioCtx.currentTime);
-    ambientGain.gain.linearRampToValueAtTime(muted ? 0 : 0.15, audioCtx.currentTime + 0.8);
+    ambientGain.gain.linearRampToValueAtTime(muted ? 0 : 0.35, audioCtx.currentTime + 0.8);
     result.output.connect(ambientGain);
     ambientGain.connect(audioCtx.destination);
 
@@ -1348,10 +1363,10 @@ body.cm { background: radial-gradient(ellipse at 50% 50%, rgba(167,139,250,0.06)
     muteBtn.textContent = muted ? '\ud83d\udd15' : '\ud83d\udd14';
     muteBtn.setAttribute('aria-label', muted ? 'Unmute' : 'Mute');
     if (gainNode) {
-      gainNode.gain.setTargetAtTime(muted ? 0 : 0.08, audioCtx.currentTime, 0.05);
+      gainNode.gain.setTargetAtTime(muted ? 0 : 0.04, audioCtx.currentTime, 0.05);
     }
     if (ambientGain) {
-      ambientGain.gain.setTargetAtTime(muted ? 0 : 0.15, audioCtx.currentTime, 0.05);
+      ambientGain.gain.setTargetAtTime(muted ? 0 : 0.35, audioCtx.currentTime, 0.05);
     }
   });
 
