@@ -35,6 +35,8 @@
   --alpha-rgb: 167,139,250;
   --theta: #34d399;
   --theta-rgb: 52,211,153;
+  --detox: #fb923c;
+  --detox-rgb: 251,146,60;
   --red: rgba(220,70,55,0.9);
   --red-bg: rgba(220,70,55,0.09);
   --red-ring: rgba(220,70,55,0.35);
@@ -437,6 +439,23 @@ body.cm { background: radial-gradient(ellipse at 50% 50%, rgba(167,139,250,0.06)
   box-shadow: inset 0 0 0 1px rgba(var(--theta-rgb),0.25), 0 0 0 1px rgba(var(--theta-rgb),0.10);
   color: var(--theta);
 }
+.wb.on.detox {
+  background: rgba(var(--detox-rgb),0.1);
+  box-shadow: inset 0 0 0 1px rgba(var(--detox-rgb),0.25), 0 0 0 1px rgba(var(--detox-rgb),0.10);
+  color: var(--detox);
+}
+.wb-full {
+  width: 100%;
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+  min-height: 30px;
+  padding: 6px 12px;
+  margin-bottom: 6px;
+}
+.wb-full .wb-label { margin-bottom: 0; }
+.wb-full .wb-name { font-size: 13px; }
+.wb-full .wb-hz { margin-top: 0; opacity: 0.5; font-size: 10px; margin-left: auto; }
 .wave-status {
   display: flex;
   align-items: center;
@@ -498,6 +517,55 @@ body.cm { background: radial-gradient(ellipse at 50% 50%, rgba(167,139,250,0.06)
   box-shadow: inset 0 0 0 1px rgba(255,255,255,0.18), 0 0 0 1px rgba(255,255,255,0.08);
   color: var(--text);
 }
+
+/* -- Volume row -- */
+.volume-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.btn-vol-icon {
+  background: none;
+  border: none;
+  font-size: 17px;
+  cursor: pointer;
+  color: var(--muted);
+  padding: 0;
+  flex-shrink: 0;
+  line-height: 1;
+  -webkit-tap-highlight-color: transparent;
+  transition: color 0.18s var(--ease);
+}
+.btn-vol-icon:hover { color: var(--text); }
+.vol-slider {
+  flex: 1;
+  -webkit-appearance: none;
+  appearance: none;
+  height: 3px;
+  background: rgba(255,255,255,0.12);
+  border-radius: 9999px;
+  outline: none;
+  cursor: pointer;
+}
+.vol-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 14px;
+  height: 14px;
+  border-radius: 9999px;
+  background: rgba(255,255,255,0.65);
+  cursor: pointer;
+  transition: background 0.18s;
+}
+.vol-slider::-webkit-slider-thumb:hover { background: rgba(255,255,255,0.95); }
+.vol-slider::-moz-range-thumb {
+  width: 14px;
+  height: 14px;
+  border-radius: 9999px;
+  background: rgba(255,255,255,0.65);
+  cursor: pointer;
+  border: none;
+}
+.vol-slider.muted { opacity: 0.35; }
 
 /* -- Controls -- */
 .controls {
@@ -702,43 +770,41 @@ body.cm { background: radial-gradient(ellipse at 50% 50%, rgba(167,139,250,0.06)
   <!-- Wave section -->
   <div class="wave-section collapsible" id="waveSection">
     <div class="eyebrow">Binaural Waves</div>
-    <div class="wave-grid">
-      <button class="wb beta on" id="waveB" aria-pressed="true">
-        <span class="wb-label">Beta</span>
-        <span class="wb-name">Focus</span>
-        <span class="wb-hz">14&ndash;30 Hz</span>
+    <div class="wave-grid" id="waveGridMain">
+      <button class="wb theta" id="waveTheta" aria-pressed="false">
+        <span class="wb-label">Theta</span>
+        <span class="wb-name">Deep</span>
+        <span class="wb-hz">4&ndash;7 Hz</span>
       </button>
       <button class="wb alpha" id="waveA" aria-pressed="false">
         <span class="wb-label">Alpha</span>
         <span class="wb-name">Relax</span>
         <span class="wb-hz">8&ndash;13 Hz</span>
       </button>
-      <button class="wb theta" id="waveTheta" aria-pressed="false">
-        <span class="wb-label">Theta</span>
-        <span class="wb-name">Deep</span>
-        <span class="wb-hz">4&ndash;7 Hz</span>
+      <button class="wb beta on" id="waveB" aria-pressed="true">
+        <span class="wb-label">Beta</span>
+        <span class="wb-name">Focus</span>
+        <span class="wb-hz">14&ndash;30 Hz</span>
       </button>
     </div>
-    <div class="wave-status" style="display:none">
+    <button class="wb detox wb-full" id="waveDet95" aria-pressed="false">
+      <span class="wb-label">Detox</span>
+      <span class="wb-name">Mold Test</span>
+      <span class="wb-hz">95 Hz</span>
+    </button>
+    <div class="wave-status">
       <span class="wave-dot" id="waveDot"></span>
-      <span id="waveTxt">Waves off</span>
-    </div>
-  </div>
-
-  <div class="ambient-section collapsible" id="ambientSection">
-    <div class="eyebrow">Ambient Sound</div>
-    <div class="ambient-grid">
-      <button class="ab on" id="ambOff">Off</button>
-      <button class="ab" id="ambForest">Forest</button>
-      <button class="ab" id="ambRain">Rain</button>
-      <button class="ab" id="ambOcean">Ocean</button>
+      <span id="waveTxt">Select a wave</span>
     </div>
   </div>
 
   <!-- Controls -->
   <div class="controls" id="controlsEl">
+    <div class="volume-row">
+      <button class="btn-vol-icon" id="muteBtn" aria-label="Mute/unmute">&#128266;</button>
+      <input type="range" class="vol-slider" id="volSlider" min="0" max="100" value="33" aria-label="Binaural volume">
+    </div>
     <div class="controls-row">
-      <button class="btn btn-mute" id="muteBtn" aria-label="Mute/unmute">&#128276;</button>
       <button class="btn btn-start" id="btnStart">Start</button>
     </div>
     <button class="btn-stop-link" id="btnStop">Reset</button>
@@ -760,174 +826,20 @@ body.cm { background: radial-gradient(ellipse at 50% 50%, rgba(167,139,250,0.06)
   let rounds = 0;
   let pts = 0;
   let muted = false;
+  let waveVolume = 0.04;
   let currentWave = 'beta';
-  let currentAmbient = 'off';
   let audioCtx = null;
   let oscLeft = null, oscRight = null, gainNode = null;
-  let ambientSource = null, ambientGain = null;
   let wakeLock = null;
   // (single-button design: Start ↔ Pause toggle, separate stop link)
 
   const WAVES = {
-    beta:  { carrier: 200, beat: 20,  name: 'Beta \u00b7 20 Hz \u00b7 Focus' },
-    alpha: { carrier: 200, beat: 10,  name: 'Alpha \u00b7 10 Hz \u00b7 Relax' },
-    theta: { carrier: 200, beat: 6,   name: 'Theta \u00b7 6 Hz \u00b7 Deep' }
+    beta:    { carrier: 200, beat: 20, name: 'Beta \u00b7 20 Hz',  desc: 'Active focus & concentration' },
+    alpha:   { carrier: 200, beat: 10, name: 'Alpha \u00b7 10 Hz', desc: 'Relaxed alertness & calm' },
+    theta:   { carrier: 200, beat: 6,  name: 'Theta \u00b7 6 Hz',  desc: 'Deep meditation & creativity' },
+    detox95: { carrier: 200, beat: 95, name: 'Detox \u00b7 95 Hz', desc: 'High Gamma \u00b7 mold resonance test' },
   };
 
-  // -- Ambient Sound generators --
-  // Helper: create a long noise buffer (5s) to avoid audible loop seams
-  function makeNoiseBuffer(ctx, seconds) {
-    var len = ctx.sampleRate * seconds;
-    var buf = ctx.createBuffer(2, len, ctx.sampleRate);
-    for (var ch = 0; ch < 2; ch++) {
-      var data = buf.getChannelData(ch);
-      for (var i = 0; i < len; i++) data[i] = Math.random() * 2 - 1;
-    }
-    return buf;
-  }
-
-  // Helper: create brown noise buffer with crossfade loop
-  function makeBrownBuffer(ctx, seconds) {
-    var len = ctx.sampleRate * seconds;
-    var buf = ctx.createBuffer(2, len, ctx.sampleRate);
-    for (var ch = 0; ch < 2; ch++) {
-      var data = buf.getChannelData(ch);
-      var last = 0;
-      // Use smaller step for smoother brown noise
-      for (var i = 0; i < len; i++) {
-        var white = Math.random() * 2 - 1;
-        data[i] = last = (last + 0.01 * white) / 1.01;
-      }
-      // Normalize gently (don't push to full range)
-      var max = 0;
-      for (var i = 0; i < len; i++) { if (Math.abs(data[i]) > max) max = Math.abs(data[i]); }
-      if (max > 0) {
-        var scale = 0.7 / max;
-        for (var i = 0; i < len; i++) data[i] *= scale;
-      }
-      // Crossfade last 0.5s with first 0.5s to eliminate loop click
-      var fade = Math.floor(ctx.sampleRate * 0.5);
-      for (var i = 0; i < fade; i++) {
-        var t = i / fade;
-        data[len - fade + i] = data[len - fade + i] * (1 - t) + data[i] * t;
-      }
-    }
-    return buf;
-  }
-
-  function makeBufferSource(ctx, buf) {
-    var src = ctx.createBufferSource();
-    src.buffer = buf;
-    src.loop = true;
-    return src;
-  }
-
-  // Rain: white noise shaped to sound like steady rain
-  // Key: keep some mid-high frequencies for the "shhh" texture
-  function makeRain(ctx) {
-    var src = makeBufferSource(ctx, makeNoiseBuffer(ctx, 5));
-    // Gentle rolloff at top end, but keep 200-2000 Hz range alive
-    var lp = ctx.createBiquadFilter();
-    lp.type = 'lowpass';
-    lp.frequency.value = 2500;
-    lp.Q.value = 0.3;
-    // Cut sub-bass rumble
-    var hp = ctx.createBiquadFilter();
-    hp.type = 'highpass';
-    hp.frequency.value = 150;
-    hp.Q.value = 0.3;
-    src.connect(hp);
-    hp.connect(lp);
-    return { source: src, output: lp };
-  }
-
-  // Forest: pink-ish noise (nature-like spectrum) + subtle texture
-  function makeForest(ctx) {
-    var src1 = makeBufferSource(ctx, makeNoiseBuffer(ctx, 5));
-    // Pink noise approximation: -3dB/octave via cascaded filters
-    var hp = ctx.createBiquadFilter();
-    hp.type = 'highpass';
-    hp.frequency.value = 100;
-    hp.Q.value = 0.3;
-    var lp = ctx.createBiquadFilter();
-    lp.type = 'lowpass';
-    lp.frequency.value = 3000;
-    lp.Q.value = 0.3;
-    // Shelf to tilt spectrum: boost lows, reduce highs
-    var shelf = ctx.createBiquadFilter();
-    shelf.type = 'lowshelf';
-    shelf.frequency.value = 500;
-    shelf.gain.value = 6;
-    src1.connect(hp);
-    hp.connect(shelf);
-    shelf.connect(lp);
-
-    // Quiet high-freq layer for "life" texture
-    var src2 = makeBufferSource(ctx, makeNoiseBuffer(ctx, 5));
-    var bp = ctx.createBiquadFilter();
-    bp.type = 'bandpass';
-    bp.frequency.value = 5000;
-    bp.Q.value = 0.3;
-    var g2 = ctx.createGain();
-    g2.gain.value = 0.04;
-    src2.connect(bp);
-    bp.connect(g2);
-
-    var mix = ctx.createGain();
-    mix.gain.value = 1;
-    lp.connect(mix);
-    g2.connect(mix);
-
-    var origStart = src1.start.bind(src1);
-    src1.start = function() { origStart(); src2.start(); };
-    var origStop = src1.stop.bind(src1);
-    src1.stop = function() { origStop(); try { src2.stop(); } catch(e){} };
-
-    return { source: src1, output: mix };
-  }
-
-  // Ocean: filtered noise with slow wave-like volume modulation
-  function makeOcean(ctx) {
-    var src = makeBufferSource(ctx, makeNoiseBuffer(ctx, 5));
-    // Shape: cut highs, keep warm mid-low
-    var lp = ctx.createBiquadFilter();
-    lp.type = 'lowpass';
-    lp.frequency.value = 800;
-    lp.Q.value = 0.3;
-    var hp = ctx.createBiquadFilter();
-    hp.type = 'highpass';
-    hp.frequency.value = 80;
-    hp.Q.value = 0.3;
-    src.connect(hp);
-    hp.connect(lp);
-
-    // Slow LFO for wave rhythm
-    var lfo = ctx.createOscillator();
-    lfo.type = 'sine';
-    lfo.frequency.value = 0.1; // ~10s wave cycle
-    var lfoGain = ctx.createGain();
-    lfoGain.gain.value = 0.15; // moderate swell
-    lfo.connect(lfoGain);
-
-    var vca = ctx.createGain();
-    vca.gain.value = 0.55;
-    lfoGain.connect(vca.gain);
-    lp.connect(vca);
-
-    var origStart = src.start.bind(src);
-    src.start = function() { origStart(); lfo.start(); };
-    var origStop = src.stop.bind(src);
-    src.stop = function() { origStop(); try { lfo.stop(); } catch(e){} };
-
-    return { source: src, output: vca };
-  }
-
-  const AMBIENTS = {
-    off:    { label: 'Off',    gen: null },
-    forest: { label: 'Forest', gen: makeForest },
-    rain:   { label: 'Rain',   gen: makeRain },
-    ocean:  { label: 'Ocean',  gen: makeOcean },
-  };
 
   // -- Elements --
   const tabFocus = document.getElementById('tabFocus');
@@ -951,6 +863,9 @@ body.cm { background: radial-gradient(ellipse at 50% 50%, rgba(167,139,250,0.06)
   const waveB = document.getElementById('waveB');
   const waveA = document.getElementById('waveA');
   const waveTheta = document.getElementById('waveTheta');
+  const waveDet95 = document.getElementById('waveDet95');
+  const allWaveBtns = [waveTheta, waveA, waveB, waveDet95];
+  const waveIdMap = { beta: waveB, alpha: waveA, theta: waveTheta, detox95: waveDet95 };
   const circleTimer = document.getElementById('circleTimer');
   const circleFg = document.getElementById('circleFg');
   const circlePhase = document.getElementById('circlePhase');
@@ -959,13 +874,7 @@ body.cm { background: radial-gradient(ellipse at 50% 50%, rgba(167,139,250,0.06)
   // All collapsible panels
   const collapsibles = document.querySelectorAll('.collapsible');
 
-  // Ambient buttons
-  const ambBtns = {
-    off: document.getElementById('ambOff'),
-    forest: document.getElementById('ambForest'),
-    rain: document.getElementById('ambRain'),
-    ocean: document.getElementById('ambOcean'),
-  };
+  const volSlider = document.getElementById('volSlider');
 
   // -- localStorage helpers --
   function todayStr() {
@@ -981,7 +890,7 @@ body.cm { background: radial-gradient(ellipse at 50% 50%, rgba(167,139,250,0.06)
 
   // -- Settings memory --
   function saveSettings() {
-    const s = { timerMin, wave: currentWave, ambient: currentAmbient };
+    const s = { timerMin, wave: currentWave, vol: volSlider.value };
     try { localStorage.setItem('focustimer_settings', JSON.stringify(s)); } catch(e) {}
   }
 
@@ -992,7 +901,8 @@ body.cm { background: radial-gradient(ellipse at 50% 50%, rgba(167,139,250,0.06)
       const s = JSON.parse(raw);
       if (s.timerMin >= 1 && s.timerMin <= 180) timerMin = s.timerMin;
       if (WAVES[s.wave]) currentWave = s.wave;
-      if (AMBIENTS[s.ambient]) currentAmbient = s.ambient;
+      if (s.vol !== undefined) { volSlider.value = s.vol; }
+      waveVolume = (volSlider.value / 100) * 0.12;
     } catch(e) {}
   }
 
@@ -1221,7 +1131,7 @@ body.cm { background: radial-gradient(ellipse at 50% 50%, rgba(167,139,250,0.06)
     stopWaves();
     const w = WAVES[currentWave];
     gainNode = audioCtx.createGain();
-    gainNode.gain.value = muted ? 0 : 0.04;
+    gainNode.gain.value = muted ? 0 : waveVolume;
 
     const merger = audioCtx.createChannelMerger(2);
     merger.connect(gainNode);
@@ -1248,17 +1158,14 @@ body.cm { background: radial-gradient(ellipse at 50% 50%, rgba(167,139,250,0.06)
 
     waveDot.classList.add('active');
     var wClass = currentWave;
-    if (wClass === 'beta') {
-      waveDot.style.background = 'var(--accent)';
-      waveDot.style.boxShadow = '0 0 5px var(--accent)';
-    } else if (wClass === 'alpha') {
-      waveDot.style.background = 'var(--alpha)';
-      waveDot.style.boxShadow = '0 0 5px var(--alpha)';
-    } else {
-      waveDot.style.background = 'var(--theta)';
-      waveDot.style.boxShadow = '0 0 5px var(--theta)';
-    }
-    waveTxt.textContent = w.name;
+    var dotColors = {
+      beta: 'var(--accent)', alpha: 'var(--alpha)', theta: 'var(--theta)',
+      detox23: 'var(--detox)', detox95: 'var(--detox)'
+    };
+    var dc = dotColors[wClass] || 'var(--accent)';
+    waveDot.style.background = dc;
+    waveDot.style.boxShadow = '0 0 5px ' + dc;
+    waveTxt.textContent = w.name + ' — ' + w.desc;
     circleWaveInfo.textContent = w.name;
   }
 
@@ -1269,84 +1176,23 @@ body.cm { background: radial-gradient(ellipse at 50% 50%, rgba(167,139,250,0.06)
     waveDot.classList.remove('active');
     waveDot.style.background = '';
     waveDot.style.boxShadow = '';
-    waveTxt.textContent = 'Waves off';
+    waveTxt.textContent = 'Select a wave';
   }
 
-  // -- Ambient sound --
-  function startAmbient() {
-    // Stop previous immediately (no fade) to avoid race condition
-    if (ambientSource) {
-      try { ambientSource.stop(); } catch(e) {}
-      ambientSource = null;
-      ambientGain = null;
-    }
-    if (currentAmbient === 'off') return;
-    initAudio();
-    const gen = AMBIENTS[currentAmbient].gen;
-    const result = gen(audioCtx);
-
-    ambientGain = audioCtx.createGain();
-    ambientGain.gain.setValueAtTime(0, audioCtx.currentTime);
-    ambientGain.gain.linearRampToValueAtTime(muted ? 0 : 0.35, audioCtx.currentTime + 0.8);
-    result.output.connect(ambientGain);
-    ambientGain.connect(audioCtx.destination);
-
-    ambientSource = result.source;
-    ambientSource.start();
-  }
-
-  function stopAmbient() {
-    if (ambientSource) {
-      if (ambientGain && audioCtx) {
-        // Capture refs before nulling, so fade-out acts on the correct nodes
-        var src = ambientSource;
-        var gn = ambientGain;
-        ambientSource = null;
-        ambientGain = null;
-        try {
-          gn.gain.cancelScheduledValues(audioCtx.currentTime);
-          gn.gain.setValueAtTime(gn.gain.value, audioCtx.currentTime);
-          gn.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.8);
-          setTimeout(function() {
-            try { src.stop(); } catch(e) {}
-          }, 900);
-        } catch(e) {
-          try { src.stop(); } catch(e2) {}
-        }
-        return;
-      }
-      try { ambientSource.stop(); } catch(e) {}
-      ambientSource = null;
-      ambientGain = null;
-    }
-  }
-
-  function selectAmbient(id) {
-    currentAmbient = id;
-    Object.keys(ambBtns).forEach(function(k) {
-      ambBtns[k].classList.toggle('on', k === id);
-    });
-    if (isRunning) {
-      startAmbient();
-    }
-    saveSettings();
-  }
-
-  ambBtns.off.addEventListener('click', function() { selectAmbient('off'); });
-  ambBtns.forest.addEventListener('click', function() { selectAmbient('forest'); });
-  ambBtns.rain.addEventListener('click', function() { selectAmbient('rain'); });
-  ambBtns.ocean.addEventListener('click', function() { selectAmbient('ocean'); });
 
   // -- Wave buttons --
   function selectWave(id) {
     currentWave = id;
-    [waveB, waveA, waveTheta].forEach(function(btn) {
+    allWaveBtns.forEach(function(btn) {
       btn.classList.remove('on');
       btn.setAttribute('aria-pressed', 'false');
     });
-    var map = { beta: waveB, alpha: waveA, theta: waveTheta };
-    map[id].classList.add('on');
-    map[id].setAttribute('aria-pressed', 'true');
+    waveIdMap[id].classList.add('on');
+    waveIdMap[id].setAttribute('aria-pressed', 'true');
+    var w = WAVES[id];
+    if (!isRunning) {
+      waveTxt.textContent = w.name + ' — ' + w.desc;
+    }
     if (isRunning && !muted) {
       startWaves();
     }
@@ -1356,18 +1202,37 @@ body.cm { background: radial-gradient(ellipse at 50% 50%, rgba(167,139,250,0.06)
   waveB.addEventListener('click', function() { selectWave('beta'); });
   waveA.addEventListener('click', function() { selectWave('alpha'); });
   waveTheta.addEventListener('click', function() { selectWave('theta'); });
+  waveDet95.addEventListener('click', function() { selectWave('detox95'); });
 
-  // -- Mute --
+  // -- Volume icon + slider --
+  function updateVolIcon() {
+    var v = parseInt(volSlider.value);
+    if (muted || v === 0) {
+      muteBtn.innerHTML = '&#128264;';
+    } else if (v < 40) {
+      muteBtn.innerHTML = '&#128265;';
+    } else {
+      muteBtn.innerHTML = '&#128266;';
+    }
+    volSlider.classList.toggle('muted', muted);
+  }
+
   muteBtn.addEventListener('click', function() {
     muted = !muted;
-    muteBtn.textContent = muted ? '\ud83d\udd15' : '\ud83d\udd14';
     muteBtn.setAttribute('aria-label', muted ? 'Unmute' : 'Mute');
     if (gainNode) {
-      gainNode.gain.setTargetAtTime(muted ? 0 : 0.04, audioCtx.currentTime, 0.05);
+      gainNode.gain.setTargetAtTime(muted ? 0 : waveVolume, audioCtx.currentTime, 0.05);
     }
-    if (ambientGain) {
-      ambientGain.gain.setTargetAtTime(muted ? 0 : 0.35, audioCtx.currentTime, 0.05);
+    updateVolIcon();
+  });
+
+  volSlider.addEventListener('input', function() {
+    waveVolume = (this.value / 100) * 0.12;
+    if (gainNode && !muted) {
+      gainNode.gain.setTargetAtTime(waveVolume, audioCtx.currentTime, 0.05);
     }
+    updateVolIcon();
+    saveSettings();
   });
 
   // -- Wake Lock --
@@ -1414,9 +1279,6 @@ body.cm { background: radial-gradient(ellipse at 50% 50%, rgba(167,139,250,0.06)
     requestWakeLock();
     if (!muted) {
       startWaves();
-      startAmbient();
-    } else if (currentAmbient !== 'off') {
-      startAmbient();
     }
 
     updateCircleProgress();
@@ -1446,7 +1308,6 @@ body.cm { background: radial-gradient(ellipse at 50% 50%, rgba(167,139,250,0.06)
     isRunning = false;
     totalPhaseTime = 0;
     stopWaves();
-    stopAmbient();
     releaseWakeLock();
     breathRing.classList.remove('active');
 
@@ -1553,10 +1414,8 @@ body.cm { background: radial-gradient(ellipse at 50% 50%, rgba(167,139,250,0.06)
   // Apply saved wave selection
   selectWave(currentWave);
 
-  // Apply saved ambient selection
-  Object.keys(ambBtns).forEach(function(k) {
-    ambBtns[k].classList.toggle('on', k === currentAmbient);
-  });
+  waveVolume = (volSlider.value / 100) * 0.12;
+  updateVolIcon();
 
   updateDisp();
   updateRnd();
