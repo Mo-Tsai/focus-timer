@@ -67,7 +67,7 @@ body.cm { background: radial-gradient(ellipse at 50% 50%, rgba(167,139,250,0.06)
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
-  padding: 36px 24px 40px;
+  padding: max(56px, env(safe-area-inset-top, 56px)) 24px max(52px, env(safe-area-inset-bottom, 52px));
   max-width: 440px;
   margin: 0 auto;
   gap: 0;
@@ -166,11 +166,7 @@ body.cm { background: radial-gradient(ellipse at 50% 50%, rgba(167,139,250,0.06)
 
 /* -- Timer section -- */
 .timer-section {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  padding: 0;
+  padding: 20px 0 16px;
   transition: all 0.5s var(--ease);
 }
 
@@ -585,8 +581,8 @@ body.cm { background: radial-gradient(ellipse at 50% 50%, rgba(167,139,250,0.06)
   display: flex;
   flex-direction: column;
   gap: 8px;
-  margin-top: 8px;
-  padding-top: 0;
+  margin-top: auto;
+  padding-top: 8px;
   transition: opacity 0.4s var(--ease);
 }
 .controls-row {
@@ -717,7 +713,7 @@ body.cm { background: radial-gradient(ellipse at 50% 50%, rgba(167,139,250,0.06)
     <span class="app-title">Focus Timer</span>
     <span class="app-subtitle">binaural beats + pomodoro</span>
     <span class="streak-badge" id="streakBadge"></span>
-    <span class="ver-badge">v1.2</span>
+    <span class="ver-badge">v1.3</span>
   </div>
 
   <!-- Tabs -->
