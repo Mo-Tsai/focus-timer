@@ -262,7 +262,7 @@ body{
   right:22px;
   font-size:11px;color:var(--tx2);
   background:var(--d2);border:1px solid var(--line);
-  border-radius:999px;padding:5px 11px;z-index:6;
+  border-radius:999px;padding:5px 11px;z-index:30;
 }
 .countpill[hidden]{display:none;}
 
@@ -402,7 +402,7 @@ body{
         <path d="M2 12 L38 4" stroke="#5DB89A" stroke-width="1.4" stroke-linecap="round"/>
         <circle cx="40" cy="3.6" r="2.6" fill="#5DB89A"/>
       </svg>
-      <span class="ver">v1.6</span>
+      <span class="ver">v1.7</span>
     </div>
 
     <div class="seg">
@@ -488,6 +488,21 @@ body{
     </div>
   </div>
 
+  <!-- ============ RETURN SHEET (state 4) ============ -->
+  <div class="sheet-wrap" id="returnSheet" hidden>
+    <div class="scrim" id="returnScrim"></div>
+    <div class="sheet">
+      <div class="grab"></div>
+      <div class="lab">Return</div>
+      <h3>Coming back is the rep.</h3>
+      <input class="field" id="noteInput" type="text" autocomplete="off"
+             placeholder="Where I am / what's next&hellip;">
+      <div class="cue"><span class="b"></span>Park the interruption. Let your mind drop it.</div>
+      <button class="cta soft" id="btnBack" style="margin-top:16px">Back to focus</button>
+      <button class="cta ghost" id="btnEnd" style="margin-top:10px">End session</button>
+    </div>
+  </div>
+
 </div>
 
 <script>
@@ -567,6 +582,8 @@ body{
   const waveSheet = $('waveSheet'), waveRows = $('waveRows');
   const volSlider = $('volSlider'), muteBtn = $('muteBtn');
   const beginSheet = $('beginSheet'), taskInput = $('taskInput'), btnBegin = $('btnBegin');
+  const returnSheet = $('returnSheet'), returnScrim = $('returnScrim');
+  const noteInput = $('noteInput'), btnBack = $('btnBack'), btnEnd = $('btnEnd');
 
   /* ---------- Helpers ---------- */
   function pad(n) { return String(n).padStart(2, '0'); }
@@ -677,14 +694,25 @@ body{
   });
 
   /* ---------- Screen router ---------- */
+  function todayDistractions() {
+    const today = todayStr();
+    let n = (cur && isRunning) ? cur.distractions : 0;
+    Store.sessions().forEach(function (s) { if (s.date === today) n += (s.distractions || 0); });
+    return n;
+  }
+  function updateCountPill() {
+    const n = todayDistractions();
+    countPill.textContent = n + ' today';
+    countPill.hidden = !(activeTab === 'focus' && isRunning && n > 0);
+  }
   function render() {
     const onFocus = activeTab === 'focus';
     screenSetup.hidden = !(onFocus && !isRunning);
     screenFocus.hidden = !(onFocus && isRunning);
     screenLog.hidden   = !(activeTab === 'log');
-    countPill.hidden   = !(onFocus && isRunning && cur && cur.distractions > 0);
     tabFocus.classList.toggle('on', onFocus);
     tabLog.classList.toggle('on', activeTab === 'log');
+    updateCountPill();
   }
   tabFocus.addEventListener('click', function () { activeTab = 'focus'; render(); });
   tabLog.addEventListener('click', function () { activeTab = 'log'; render(); });
@@ -805,7 +833,7 @@ body{
 
     focusTask.textContent = cur.task || (isMedMode ? 'Meditation' : 'Focus session');
     holdPause.innerHTML = '&#9208; Hold to pause';
-    countPill.textContent = '0';
+    bigTime.classList.remove('paused');
 
     render();
     updateRun();
@@ -855,7 +883,7 @@ body{
     if (!isRunning) return;
     cur.completed = remaining <= 0;
     cur.endedAt = new Date().toISOString();
-    // NOTE: persistence to ft.sessions lands in commit 4 (Return sheet / End session)
+    Store.addSession(cur);
     stopRun();
   }
 
@@ -863,8 +891,8 @@ body{
     clearInterval(intervalId); intervalId = null;
     cur.completed = true;
     cur.endedAt = new Date().toISOString();
+    Store.addSession(cur);
     playNotification();
-    // NOTE: persistence lands in commit 4
     stopRun();
   }
 
@@ -898,12 +926,38 @@ body{
     if (e.key === 'Enter') { e.preventDefault(); beginFocusing(); }
   });
 
-  /* ---------- Distracted (commit 1: silent +1; Return sheet in commit 4) ---------- */
+  /* ---------- Distracted → Return sheet (state 4) ---------- */
+  let pendingReturn = null;
   btnDistract.addEventListener('click', function () {
     if (!isRunning) return;
+    // count immediately and silently — this tap is the dataset's lifeblood
+    pendingReturn = { atSec: totalPhaseTime - remaining, note: '' };
     cur.distractions++;
-    countPill.textContent = cur.distractions;
-    countPill.hidden = false;
+    cur.returns.push(pendingReturn);
+    updateCountPill();
+    noteInput.value = '';
+    openSheet(returnSheet);
+    setTimeout(function () { noteInput.focus(); }, 120);
+  });
+  function saveReturnNote() {
+    if (pendingReturn) pendingReturn.note = noteInput.value.trim();
+  }
+  function backToFocus() {
+    saveReturnNote();
+    pendingReturn = null;
+    closeSheet(returnSheet);
+  }
+  function endViaReturn() {
+    saveReturnNote();
+    pendingReturn = null;
+    closeSheet(returnSheet);
+    endSession();
+  }
+  btnBack.addEventListener('click', backToFocus);
+  returnScrim.addEventListener('click', backToFocus);
+  btnEnd.addEventListener('click', endViaReturn);
+  noteInput.addEventListener('keydown', function (e) {
+    if (e.key === 'Enter') { e.preventDefault(); backToFocus(); }
   });
 
   /* ---------- Hold to pause / tap to resume ---------- */
