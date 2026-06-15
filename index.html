@@ -280,6 +280,52 @@ body{
 .empty .big{font-family:var(--serif);font-style:italic;font-size:20px;color:var(--tx2);}
 .empty .sub{font-size:13px;line-height:1.55;max-width:240px;color:var(--tx3);}
 
+/* dense Log: allow vertical scroll */
+#screenLog{overflow-y:auto;-webkit-overflow-scrolling:touch;}
+.log-stats{padding-bottom:calc(var(--sab) + 24px);}
+
+/* stat cards */
+.stat{
+  background:var(--d2);border:1px solid var(--line);border-radius:15px;
+  padding:14px 15px;margin-bottom:11px;
+}
+.stat .row{display:flex;align-items:baseline;justify-content:space-between;}
+.stat .k{font-size:12px;color:var(--tx2);letter-spacing:.02em;}
+.stat .v{
+  font-family:var(--serif);font-weight:400;font-size:25px;color:var(--tx);
+  font-variant-numeric:tabular-nums;
+}
+.stat .v.good{color:var(--jade);}
+.stat .v .ar{font-size:14px;margin-left:3px;}
+.spark{margin-top:9px;display:block;width:100%;}
+.spark path{stroke:var(--jade);stroke-width:1.8;fill:none;stroke-linecap:round;stroke-linejoin:round;}
+.bars{display:flex;align-items:flex-end;gap:4px;height:34px;margin-top:9px;}
+.bars span{flex:1;background:var(--jade-dim);border-radius:2px 2px 0 0;}
+.bars span.hi{background:var(--jade);}
+.quality{display:flex;align-items:center;justify-content:space-between;}
+.dots span{
+  display:inline-block;width:14px;height:14px;border-radius:50%;
+  border:1.4px solid var(--jade);margin-left:8px;cursor:pointer;
+  -webkit-tap-highlight-color:transparent;transition:background .15s var(--ease);
+}
+.dots span.f{background:var(--jade);box-shadow:0 0 8px -2px var(--jade);}
+
+/* Focus Protocol collapsible */
+.rule-card{
+  width:100%;text-align:left;
+  background:var(--d2);border:1px solid var(--line);border-radius:13px;
+  padding:13px 15px;display:flex;align-items:center;justify-content:space-between;
+  color:var(--tx2);font-size:13px;font-family:var(--sans);
+  cursor:pointer;-webkit-tap-highlight-color:transparent;
+}
+.rule-card .cv{color:var(--tx3);}
+.proto-body{
+  background:var(--d2);border:1px solid var(--line);border-top:0;
+  border-radius:0 0 13px 13px;margin-top:-1px;padding:2px 15px 12px;
+}
+.proto-body .cue{color:var(--tx2);}
+.proto-body .cue:first-child{border-top:0;}
+
 /* -- Bottom tabs -- */
 .tabs{
   display:flex;flex:none;
@@ -402,7 +448,7 @@ body{
         <path d="M2 12 L38 4" stroke="#5DB89A" stroke-width="1.4" stroke-linecap="round"/>
         <circle cx="40" cy="3.6" r="2.6" fill="#5DB89A"/>
       </svg>
-      <span class="ver">v1.7</span>
+      <span class="ver">v1.8</span>
     </div>
 
     <div class="seg">
@@ -448,6 +494,33 @@ body{
       <div class="glyph">&#9678;</div>
       <div class="big">No sessions yet.</div>
       <div class="sub">Finish your first focus block and your completion rate, distractions, and focus minutes will appear here.</div>
+    </div>
+
+    <div class="log-stats" id="logStats" hidden>
+      <div class="stat">
+        <div class="row"><span class="k">Completion rate</span><span class="v" id="mCompV">0%</span></div>
+        <svg class="spark" height="30" viewBox="0 0 230 30" preserveAspectRatio="none"><path id="mCompPath" d=""/></svg>
+      </div>
+      <div class="stat">
+        <div class="row"><span class="k">Distractions / hour</span><span class="v" id="mDphV">0.0</span></div>
+        <svg class="spark" height="30" viewBox="0 0 230 30" preserveAspectRatio="none"><path id="mDphPath" d=""/></svg>
+      </div>
+      <div class="stat">
+        <div class="row"><span class="k">Daily focus minutes</span><span class="v" id="mMinV">0m</span></div>
+        <div class="bars" id="mBars"></div>
+      </div>
+      <div class="stat quality">
+        <span class="k">How was your focus today?</span>
+        <span class="dots" id="mDots"></span>
+      </div>
+      <button class="rule-card" id="protoToggle">Focus Protocol <span class="cv" id="protoCaret">&#9662;</span></button>
+      <div class="proto-body" id="protoBody" hidden>
+        <div class="cue"><span class="b"></span>Phone goes to another room before you start.</div>
+        <div class="cue"><span class="b"></span>Run the ritual &mdash; drink, music, clear the desk.</div>
+        <div class="cue"><span class="b"></span>The first 15 minutes are warm-up. Push through.</div>
+        <div class="cue"><span class="b"></span>Coming back is the rep &mdash; log every distraction.</div>
+        <div class="cue"><span class="b"></span>Rate your focus afterward, never mid-session.</div>
+      </div>
     </div>
   </section>
 
@@ -544,6 +617,11 @@ body{
     saveSettings(s) {
       try { localStorage.setItem(this.KEY_SETTINGS, JSON.stringify(s)); } catch (e) {}
     },
+    setRating(id, val) {
+      const a = this.sessions();
+      const s = a.find(function (x) { return x.id === id; });
+      if (s) { s.selfRating = val; try { localStorage.setItem(this.KEY_SESSIONS, JSON.stringify(a)); } catch (e) {} }
+    },
   };
 
   /* ---------- Runtime state ---------- */
@@ -584,6 +662,11 @@ body{
   const beginSheet = $('beginSheet'), taskInput = $('taskInput'), btnBegin = $('btnBegin');
   const returnSheet = $('returnSheet'), returnScrim = $('returnScrim');
   const noteInput = $('noteInput'), btnBack = $('btnBack'), btnEnd = $('btnEnd');
+  const logEmpty = $('logEmpty'), logStats = $('logStats');
+  const mCompV = $('mCompV'), mCompPath = $('mCompPath');
+  const mDphV = $('mDphV'), mDphPath = $('mDphPath');
+  const mMinV = $('mMinV'), mBars = $('mBars'), mDots = $('mDots');
+  const protoToggle = $('protoToggle'), protoCaret = $('protoCaret'), protoBody = $('protoBody');
 
   /* ---------- Helpers ---------- */
   function pad(n) { return String(n).padStart(2, '0'); }
@@ -715,7 +798,7 @@ body{
     updateCountPill();
   }
   tabFocus.addEventListener('click', function () { activeTab = 'focus'; render(); });
-  tabLog.addEventListener('click', function () { activeTab = 'log'; render(); });
+  tabLog.addEventListener('click', function () { activeTab = 'log'; renderLog(); render(); });
 
   /* ---------- Mode toggle ---------- */
   function setMode(med) {
@@ -976,6 +1059,120 @@ body{
   holdPause.addEventListener('pointerup', endHold);
   holdPause.addEventListener('pointerleave', function () {
     if (holdTimer) { clearTimeout(holdTimer); holdTimer = null; }
+  });
+
+  /* ---------- Metrics (derived, never stored) ---------- */
+  function computeMetrics() {
+    const all = Store.sessions().slice().sort(function (a, b) {
+      return (a.startedAt < b.startedAt) ? -1 : 1;
+    });
+    if (!all.length) return null;
+
+    const byDate = {}, dates = [];
+    all.forEach(function (s) {
+      if (!byDate[s.date]) { byDate[s.date] = { total:0, completed:0, distractions:0, actualSec:0, focusSec:0 }; dates.push(s.date); }
+      const d = byDate[s.date];
+      d.total++;
+      if (s.completed) d.completed++;
+      d.distractions += s.distractions || 0;
+      d.actualSec += s.actualSec || 0;
+      if (s.mode === 'focus') d.focusSec += s.actualSec || 0;
+    });
+    dates.sort();
+
+    // headline: rolling last 14 sessions
+    const last14 = all.slice(-14);
+    const compRate = Math.round(last14.filter(function (s) { return s.completed; }).length / last14.length * 100);
+    const a14 = last14.reduce(function (x, s) { return x + (s.actualSec || 0); }, 0);
+    const d14 = last14.reduce(function (x, s) { return x + (s.distractions || 0); }, 0);
+    const dph = a14 > 0 ? d14 / (a14 / 3600) : 0;
+
+    // per-day series (last 7 active days)
+    const recent = dates.slice(-7);
+    const compSeries = recent.map(function (dt) { return byDate[dt].total ? byDate[dt].completed / byDate[dt].total * 100 : 0; });
+    const dphSeries  = recent.map(function (dt) { return byDate[dt].actualSec > 0 ? byDate[dt].distractions / (byDate[dt].actualSec / 3600) : 0; });
+    const minSeries  = recent.map(function (dt) { return Math.round(byDate[dt].focusSec / 60); });
+
+    const todayKey = todayStr();
+    const todayMin = byDate[todayKey] ? Math.round(byDate[todayKey].focusSec / 60) : 0;
+
+    function trend(series) {
+      if (series.length < 2) return 0;
+      const a = series[series.length - 2], b = series[series.length - 1];
+      return b > a ? 1 : (b < a ? -1 : 0);
+    }
+    return {
+      compRate: compRate, dph: dph, todayMin: todayMin,
+      compSeries: compSeries, dphSeries: dphSeries, minSeries: minSeries,
+      compTrend: trend(compSeries), dphTrend: trend(dphSeries), minTrend: trend(minSeries),
+    };
+  }
+
+  function sparkPath(series) {
+    let s = series.slice();
+    if (s.length < 2) s = [s[0] || 0, s[0] || 0];
+    const max = Math.max.apply(null, s), min = Math.min.apply(null, s);
+    const range = (max - min) || 1, W = 230, H = 30, p = 4;
+    return s.map(function (v, i) {
+      const x = (i / (s.length - 1)) * (W - 2 * p) + p;
+      const y = (H - p) - ((v - min) / range) * (H - 2 * p);
+      return (i ? 'L' : 'M') + x.toFixed(1) + ' ' + y.toFixed(1);
+    }).join(' ');
+  }
+  function barsHtml(series) {
+    const max = Math.max.apply(null, series.concat([1]));
+    return series.map(function (v, i) {
+      const hi = (i === series.length - 1) ? ' class="hi"' : '';
+      return '<span' + hi + ' style="height:' + Math.max(6, v / max * 100) + '%"></span>';
+    }).join('');
+  }
+  function arrow(t) {
+    return t > 0 ? '<span class="ar">&uarr;</span>' : (t < 0 ? '<span class="ar">&darr;</span>' : '');
+  }
+
+  /* ---------- Log render ---------- */
+  let ratingTarget = null;
+  function renderDots() {
+    const all = Store.sessions();
+    ratingTarget = all.length ? all[all.length - 1] : null;
+    const val = (ratingTarget && ratingTarget.selfRating) ? ratingTarget.selfRating : 0;
+    mDots.innerHTML = '';
+    for (let i = 1; i <= 5; i++) {
+      const sp = document.createElement('span');
+      if (i <= val) sp.className = 'f';
+      (function (n) {
+        sp.addEventListener('click', function () {
+          if (!ratingTarget) return;
+          Store.setRating(ratingTarget.id, n);
+          renderDots();
+        });
+      })(i);
+      mDots.appendChild(sp);
+    }
+  }
+  function renderLog() {
+    const m = computeMetrics();
+    if (!m) { logEmpty.hidden = false; logStats.hidden = true; return; }
+    logEmpty.hidden = true; logStats.hidden = false;
+
+    mCompV.innerHTML = m.compRate + '%' + arrow(m.compTrend);
+    mCompV.classList.toggle('good', m.compTrend > 0);
+    mCompPath.setAttribute('d', sparkPath(m.compSeries));
+
+    mDphV.innerHTML = m.dph.toFixed(1) + arrow(m.dphTrend);
+    mDphV.classList.toggle('good', m.dphTrend < 0);   // fewer distractions is better
+    mDphPath.setAttribute('d', sparkPath(m.dphSeries));
+
+    mMinV.innerHTML = m.todayMin + 'm' + arrow(m.minTrend);
+    mMinV.classList.toggle('good', m.minTrend > 0);
+    mBars.innerHTML = barsHtml(m.minSeries);
+
+    renderDots();
+  }
+  protoToggle.addEventListener('click', function () {
+    const willOpen = protoBody.hidden;
+    protoBody.hidden = !willOpen;
+    protoCaret.innerHTML = willOpen ? '&#9652;' : '&#9662;';
   });
 
   /* ---------- Init ---------- */
