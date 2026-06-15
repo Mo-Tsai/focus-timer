@@ -216,6 +216,7 @@ body{
   transition:color .4s var(--ease);
 }
 .bigtime.ending{color:var(--ember);}
+.bigtime.paused{opacity:.4;}
 .prog{width:190px;margin-top:26px;}
 .track{
   position:relative;height:5px;border-radius:4px;
@@ -235,7 +236,8 @@ body{
   display:flex;justify-content:space-between;
   margin-top:8px;font-size:10.5px;color:var(--tx3);letter-spacing:.04em;
 }
-.proglab .w{color:var(--ember);}
+.proglab .w{color:var(--ember);transition:color .5s var(--ease);}
+.proglab .w.done{color:var(--jade);}
 .distract{
   margin:0 0 14px;width:100%;
   border:0;border-radius:17px;padding:22px 0;
@@ -400,7 +402,7 @@ body{
         <path d="M2 12 L38 4" stroke="#5DB89A" stroke-width="1.4" stroke-linecap="round"/>
         <circle cx="40" cy="3.6" r="2.6" fill="#5DB89A"/>
       </svg>
-      <span class="ver">v1.5</span>
+      <span class="ver">v1.6</span>
     </div>
 
     <div class="seg">
@@ -432,7 +434,7 @@ body{
           <div class="warm" id="warmZone"></div>
           <div class="fill" id="progFill"></div>
         </div>
-        <div class="proglab"><span class="w">Warm-up</span><span id="progEnd">25:00</span></div>
+        <div class="proglab"><span class="w" id="warmLabel">Warm-up</span><span id="progEnd">25:00</span></div>
       </div>
     </div>
     <button class="distract" id="btnDistract">Distracted</button>
@@ -558,7 +560,7 @@ body{
   const chipText = $('chipText'), waveChip = $('waveChip');
   const btnStart = $('btnStart');
   const focusTask = $('focusTask'), bigTime = $('bigTime');
-  const warmZone = $('warmZone'), progFill = $('progFill'), progEnd = $('progEnd');
+  const warmZone = $('warmZone'), progFill = $('progFill'), progEnd = $('progEnd'), warmLabel = $('warmLabel');
   const btnDistract = $('btnDistract'), holdPause = $('holdPause');
   const countPill = $('countPill');
   const tabFocus = $('tabFocus'), tabLog = $('tabLog');
@@ -823,21 +825,28 @@ body{
     bigTime.textContent = fmt(remaining);
     const planned = totalPhaseTime || 1;
     const elapsed = planned - remaining;
+    const warmEnd = Math.min(warmupSec, planned);
     progFill.style.width = (elapsed / planned * 100) + '%';
-    warmZone.style.width = (Math.min(warmupSec, planned) / planned * 100) + '%';
+    warmZone.style.width = (warmEnd / planned * 100) + '%';
     progEnd.textContent = fmt(planned);
     bigTime.classList.toggle('ending', remaining <= 10 && remaining > 0);
+    // once past the warm-up zone, the label flips so you watch it pass
+    const past = elapsed >= warmEnd;
+    warmLabel.textContent = past ? 'In flow' : 'Warm-up';
+    warmLabel.classList.toggle('done', past);
   }
 
   function pauseTimer() {
     if (!isRunning || paused) return;
     clearInterval(intervalId); intervalId = null;
     paused = true;
+    bigTime.classList.add('paused');
     holdPause.textContent = 'Paused · tap to resume';
   }
   function resumeTimer() {
     if (!isRunning || !paused) return;
     paused = false;
+    bigTime.classList.remove('paused');
     holdPause.innerHTML = '&#9208; Hold to pause';
     intervalId = setInterval(tick, 1000);
   }
