@@ -322,6 +322,27 @@ body{
   font-size:19px;color:var(--tx);margin-bottom:3px;
 }
 
+/* text field (Begin / Return sheets) */
+.field{
+  width:100%;margin:14px 0;
+  background:var(--d1);border:1px solid var(--line);border-radius:11px;
+  padding:13px 14px;font-size:14px;color:var(--tx);
+  font-family:var(--sans);-webkit-appearance:none;
+}
+.field::placeholder{color:var(--tx3);}
+.field:focus{outline:none;border-color:rgba(93,184,154,.4);}
+
+/* cue lines */
+.cue{
+  display:flex;align-items:flex-start;gap:10px;
+  padding:7px 0;font-size:13px;color:var(--tx2);line-height:1.4;
+}
+.cue .b{
+  flex:none;width:5px;height:5px;border-radius:50%;
+  background:var(--jade);margin-top:6px;
+}
+.cue + .cue{border-top:1px solid var(--line2);}
+
 /* wave rows */
 .wave-row{
   display:flex;align-items:center;gap:11px;width:100%;
@@ -379,7 +400,7 @@ body{
         <path d="M2 12 L38 4" stroke="#5DB89A" stroke-width="1.4" stroke-linecap="round"/>
         <circle cx="40" cy="3.6" r="2.6" fill="#5DB89A"/>
       </svg>
-      <span class="ver">v1.4</span>
+      <span class="ver">v1.5</span>
     </div>
 
     <div class="seg">
@@ -446,6 +467,22 @@ body{
         <button class="vi" id="muteBtn" aria-label="Mute">&#128266;</button>
         <input type="range" class="vol-slider" id="volSlider" min="0" max="100" value="33" aria-label="Volume">
       </div>
+    </div>
+  </div>
+
+  <!-- ============ BEGIN SHEET (state 2) ============ -->
+  <div class="sheet-wrap" id="beginSheet" hidden>
+    <div class="scrim" data-close></div>
+    <div class="sheet">
+      <div class="grab"></div>
+      <div class="lab">Begin</div>
+      <h3>One thing at a time.</h3>
+      <input class="field" id="taskInput" type="text" autocomplete="off"
+             placeholder="The one next action. Just one&hellip;">
+      <div class="cue"><span class="b"></span>Phone goes to another room.</div>
+      <div class="cue"><span class="b"></span>Run the ritual &mdash; drink, music, clear desk.</div>
+      <div class="cue"><span class="b"></span>The first 15 min feel hard. That's warm-up.</div>
+      <button class="cta soft" id="btnBegin" style="margin-top:16px">Start focusing</button>
     </div>
   </div>
 
@@ -527,6 +564,7 @@ body{
   const tabFocus = $('tabFocus'), tabLog = $('tabLog');
   const waveSheet = $('waveSheet'), waveRows = $('waveRows');
   const volSlider = $('volSlider'), muteBtn = $('muteBtn');
+  const beginSheet = $('beginSheet'), taskInput = $('taskInput'), btnBegin = $('btnBegin');
 
   /* ---------- Helpers ---------- */
   function pad(n) { return String(n).padStart(2, '0'); }
@@ -834,8 +872,22 @@ body{
     render();
   }
 
-  /* ---------- Start button (commit 1: direct start; Begin sheet in commit 2) ---------- */
-  btnStart.addEventListener('click', function () { startSession(''); });
+  /* ---------- Start button → Begin sheet (state 2) ---------- */
+  btnStart.addEventListener('click', function () {
+    taskInput.value = '';
+    openSheet(beginSheet);
+    // delay focus so the sheet-up animation doesn't fight the keyboard
+    setTimeout(function () { taskInput.focus(); }, 120);
+  });
+  function beginFocusing() {
+    const t = taskInput.value.trim();
+    closeSheet(beginSheet);
+    startSession(t);   // beats start here
+  }
+  btnBegin.addEventListener('click', beginFocusing);
+  taskInput.addEventListener('keydown', function (e) {
+    if (e.key === 'Enter') { e.preventDefault(); beginFocusing(); }
+  });
 
   /* ---------- Distracted (commit 1: silent +1; Return sheet in commit 4) ---------- */
   btnDistract.addEventListener('click', function () {
