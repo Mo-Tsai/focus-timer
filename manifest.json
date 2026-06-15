@@ -4,8 +4,8 @@
   "description": "A focus timer with binaural beats",
   "start_url": "/focus-timer/",
   "display": "standalone",
-  "background_color": "#0a0a0c",
-  "theme_color": "#0a0a0c",
+  "background_color": "#19170F",
+  "theme_color": "#19170F",
   "orientation": "portrait",
   "icons": [
     {

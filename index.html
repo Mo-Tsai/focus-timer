@@ -2,1138 +2,555 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Focus Timer</title>
 <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Focus Timer">
-<meta name="theme-color" content="#0a0a0c">
+<meta name="theme-color" content="#19170F">
 <link rel="manifest" href="manifest.json">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..500;1,9..144,300..440&display=swap" rel="stylesheet">
 <style>
-*, *::before, *::after {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
+/* ============================================================
+   Focus Timer — warm-dark portrait UI
+   Visual source of truth: focus-timer-mockup.html
+   ============================================================ */
+:root{
+  --d0:#141209; --d1:#19170F; --d2:#211E15; --d3:#2A261B;
+  --tx:#ECE7D9; --tx2:#9D9684; --tx3:#6E6857;
+  --jade:#5DB89A; --jade-dim:#2E5A4D; --ember:#B98A57;
+  --line:rgba(236,231,217,.10); --line2:rgba(236,231,217,.06);
+  --sans:-apple-system,"SF Pro Text","Helvetica Neue",system-ui,sans-serif;
+  --serif:"Fraunces",Georgia,serif;
+  --ease:cubic-bezier(0.16,1,0.3,1);
+  --sat:env(safe-area-inset-top,0px);
+  --sab:env(safe-area-inset-bottom,0px);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html,body{height:100%;}
+body{
+  background:var(--d1);
+  color:var(--tx);
+  font-family:var(--sans);
+  -webkit-font-smoothing:antialiased;
+  -moz-osx-font-smoothing:grayscale;
+  overflow:hidden;
 }
 
-:root {
-  --bg: #0a0a0c;
-  --surface: rgba(255,255,255,0.03);
-  --ring: rgba(255,255,255,0.05);
-  --ring-outer: rgba(255,255,255,0.10);
-  --text: rgba(255,255,255,0.92);
-  --muted: rgba(255,255,255,0.42);
-  --dim: rgba(255,255,255,0.28);
-  --divider: rgba(255,255,255,0.07);
-  --accent: #5b9cf6;
-  --accent-rgb: 91,156,246;
-  --alpha: #a78bfa;
-  --alpha-rgb: 167,139,250;
-  --theta: #34d399;
-  --theta-rgb: 52,211,153;
-  --detox: #fb923c;
-  --detox-rgb: 251,146,60;
-  --red: rgba(220,70,55,0.9);
-  --red-bg: rgba(220,70,55,0.09);
-  --red-ring: rgba(220,70,55,0.35);
-  --ease: cubic-bezier(0.16,1,0.3,1);
-  --ease-fast: cubic-bezier(0.16,1,0.3,1);
+.app{
+  position:relative;
+  display:flex;
+  flex-direction:column;
+  height:100svh;
+  max-width:440px;
+  margin:0 auto;
+  overflow:hidden;
 }
 
-html, body {
-  height: 100%;
-  background: var(--bg);
-  color: var(--text);
-  font-family: 'Inter', ui-sans-serif, system-ui, -apple-system, sans-serif;
-  font-weight: 550;
-  font-feature-settings: 'ss02' 0;
-  font-size: 14px;
-  line-height: 1.6;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  overflow: hidden;
+/* -- Screen views: only one visible at a time -- */
+.screen-view{
+  flex:1;
+  display:flex;
+  flex-direction:column;
+  padding:calc(var(--sat) + 30px) 22px 0;
+  overflow:hidden;
+}
+.screen-view[hidden]{display:none;}
+
+/* -- App header (Setup) -- */
+.apphdr{
+  display:flex;
+  align-items:center;
+  gap:9px;
+  margin-top:8px;
+  margin-bottom:22px;
+}
+.apphdr .ttl{
+  font-family:var(--serif);
+  font-style:italic;
+  font-size:16px;
+  color:var(--tx);
+  letter-spacing:.01em;
+}
+.apphdr .ver{
+  margin-left:auto;
+  font-family:'Courier New',monospace;
+  font-size:10px;
+  color:var(--tx3);
+  letter-spacing:.06em;
 }
 
-body { transition: background 0.6s var(--ease); }
-body.cf { background: radial-gradient(ellipse at 60% 20%, rgba(91,156,246,0.06) 0%, #0a0a0c 65%); }
-body.cm { background: radial-gradient(ellipse at 50% 50%, rgba(167,139,250,0.06) 0%, #0a0a0c 65%); }
+/* -- Segmented mode toggle -- */
+.seg{
+  display:flex;
+  background:var(--d2);
+  border:1px solid var(--line);
+  border-radius:11px;
+  padding:3px;
+  gap:3px;
+}
+.seg button{
+  flex:1;
+  border:0;
+  background:transparent;
+  color:var(--tx2);
+  font-family:var(--sans);
+  font-size:13px;
+  padding:9px 0;
+  border-radius:8px;
+  letter-spacing:.04em;
+  cursor:pointer;
+  -webkit-tap-highlight-color:transparent;
+}
+.seg button b{font-weight:400;color:inherit;}
+.seg .on{
+  background:var(--d3);
+  color:var(--tx);
+  box-shadow:0 1px 0 rgba(236,231,217,.05) inset;
+}
+.seg .on b{color:var(--jade);font-weight:500;}
 
-.app {
-  height: 100svh;
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-start;
-  padding: max(56px, env(safe-area-inset-top, 56px)) 24px max(52px, env(safe-area-inset-bottom, 52px));
-  max-width: 440px;
-  margin: 0 auto;
-  gap: 0;
-  overflow: hidden;
-  position: relative;
-  z-index: 1;
+/* -- Time dial -- */
+.dial{
+  flex:1;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:6px;
 }
+.dial .time{
+  font-family:var(--serif);
+  font-weight:300;
+  font-size:74px;
+  letter-spacing:.01em;
+  line-height:1;
+  font-variant-numeric:tabular-nums;
+  color:var(--tx);
+  cursor:ns-resize;
+  -webkit-tap-highlight-color:transparent;
+  user-select:none;
+  touch-action:none;
+}
+.dial .hint{
+  font-size:11.5px;
+  color:var(--tx3);
+  letter-spacing:.02em;
+}
+.dial .hint .ar{color:var(--tx2);}
 
-/* -- Header -- */
-.header {
-  display: flex;
-  align-items: baseline;
-  gap: 10px;
-  margin-bottom: 8px;
-  transition: opacity 0.5s var(--ease), transform 0.5s var(--ease);
+/* -- Wave chip -- */
+.chip{
+  align-self:center;
+  display:inline-flex;
+  align-items:center;
+  gap:9px;
+  background:var(--d2);
+  border:1px solid var(--line);
+  border-radius:999px;
+  padding:9px 15px;
+  font-size:12.5px;
+  color:var(--tx2);
+  margin-bottom:4px;
+  cursor:pointer;
+  -webkit-tap-highlight-color:transparent;
 }
-.app-title {
-  font-size: 17px;
-  font-weight: 680;
-  letter-spacing: -0.03em;
-  color: var(--text);
+.chip .dot{
+  width:6px;height:6px;border-radius:50%;
+  background:var(--jade);
+  box-shadow:0 0 7px var(--jade);
 }
-.app-subtitle {
-  font-size: 13px;
-  font-weight: 450;
-  color: var(--muted);
-  letter-spacing: -0.01em;
-}
-.streak-badge {
-  margin-left: auto;
-  font-family: 'Courier New', monospace;
-  font-size: 12px;
-  color: var(--muted);
-  letter-spacing: 0.01em;
-  white-space: nowrap;
-  display: none;
-}
-.ver-badge {
-  font-family: 'Courier New', monospace;
-  font-size: 10px;
-  color: var(--dim);
-  letter-spacing: 0.05em;
-  margin-left: auto;
-}
+.chip .ca{color:var(--tx3);margin-left:2px;}
 
-/* -- Eyebrow -- */
-.eyebrow {
-  font-family: 'Courier New', monospace;
-  font-size: 11px;
-  text-transform: uppercase;
-  letter-spacing: 0.12em;
-  color: var(--dim);
-  line-height: 1.4;
-  margin-bottom: 8px;
+/* -- Primary CTA -- */
+.cta{
+  margin-top:20px;
+  margin-bottom:calc(var(--sab) + 20px);
+  width:100%;
+  border:0;
+  border-radius:15px;
+  padding:17px 0;
+  background:var(--jade);
+  color:#0E1A15;
+  font-family:var(--sans);
+  font-weight:600;
+  font-size:14.5px;
+  letter-spacing:.12em;
+  box-shadow:0 0 26px -6px rgba(93,184,154,.55);
+  text-transform:uppercase;
+  cursor:pointer;
+  -webkit-tap-highlight-color:transparent;
+  transition:transform .15s var(--ease);
 }
-
-/* -- Tabs -- */
-.tabs {
-  display: flex;
-  border-radius: 16px;
-  padding: 4px;
-  background: var(--surface);
-  box-shadow: inset 0 0 0 1px var(--ring);
-  margin-bottom: 10px;
-  transition: opacity 0.5s var(--ease), transform 0.5s var(--ease);
-}
-.tab {
-  flex: 1;
-  border-radius: 12px;
-  min-height: 34px;
-  border: none;
-  background: transparent;
-  color: var(--muted);
-  font-family: inherit;
-  font-size: 14px;
-  font-weight: 550;
-  cursor: pointer;
-  transition: all 0.22s var(--ease);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 7px;
-  -webkit-tap-highlight-color: transparent;
-  user-select: none;
-}
-.tab:active { transform: scale(0.97); }
-.tab.on {
-  background: rgba(255,255,255,0.09);
-  color: var(--text);
-  box-shadow: 0 1px 4px rgba(0,0,0,0.5), 0 0 0 1px var(--ring-outer);
-}
-.tab-icon {
-  font-size: 15px;
-  line-height: 1;
-}
-
-/* -- Timer section -- */
-.timer-section {
-  padding: 20px 0 16px;
-  transition: all 0.5s var(--ease);
-}
-
-/* -- Circle timer container -- */
-.timer-section.immersive {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  margin-bottom: 0;
-  flex: 1;
+.cta:active{transform:scale(.985);}
+.cta.soft{text-transform:none;letter-spacing:.04em;font-size:15px;margin-bottom:0;}
+.cta.ghost{
+  background:transparent;color:var(--tx);
+  border:1px solid var(--line);box-shadow:none;
+  font-weight:500;text-transform:none;letter-spacing:.03em;font-size:14.5px;
+  margin-bottom:0;
 }
 
-.circle-timer {
-  position: relative;
+/* -- In-focus screen -- */
+.focus-view{padding-bottom:0;}
+.doing{
+  font-size:12px;color:var(--tx2);letter-spacing:.03em;
+  text-align:center;margin-top:6px;
+}
+.doing b{color:var(--tx);font-weight:500;}
+.runwrap{
+  flex:1;
+  display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+}
+.bigtime{
+  font-family:var(--serif);
+  font-weight:300;
+  font-size:80px;
+  line-height:1;
+  font-variant-numeric:tabular-nums;
+  color:var(--tx);
+  transition:color .4s var(--ease);
+}
+.bigtime.ending{color:var(--ember);}
+.prog{width:190px;margin-top:26px;}
+.track{
+  position:relative;height:5px;border-radius:4px;
+  background:var(--d2);overflow:hidden;
+}
+.warm{
+  position:absolute;left:0;top:0;bottom:0;
+  width:0;background:rgba(185,138,87,.22);
+}
+.fill{
+  position:absolute;left:0;top:0;bottom:0;
+  width:0;background:var(--jade);
+  box-shadow:0 0 10px -1px var(--jade);
+  transition:width .9s linear;
+}
+.proglab{
+  display:flex;justify-content:space-between;
+  margin-top:8px;font-size:10.5px;color:var(--tx3);letter-spacing:.04em;
+}
+.proglab .w{color:var(--ember);}
+.distract{
+  margin:0 0 14px;width:100%;
+  border:0;border-radius:17px;padding:22px 0;
+  background:var(--d2);
+  border:1px solid rgba(185,138,87,.3);
+  color:var(--tx);
+  font-family:var(--sans);font-size:15px;font-weight:600;
+  letter-spacing:.14em;text-transform:uppercase;
+  cursor:pointer;-webkit-tap-highlight-color:transparent;
+  transition:transform .12s var(--ease),background .2s var(--ease);
+}
+.distract:active{transform:scale(.98);background:var(--d3);}
+.stopline{
+  text-align:center;
+  padding-bottom:calc(var(--sab) + 20px);
+  font-size:11.5px;color:var(--tx3);letter-spacing:.08em;
+  cursor:pointer;user-select:none;-webkit-tap-highlight-color:transparent;
+}
+.countpill{
+  position:absolute;
+  top:calc(var(--sat) + 22px);
+  right:22px;
+  font-size:11px;color:var(--tx2);
+  background:var(--d2);border:1px solid var(--line);
+  border-radius:999px;padding:5px 11px;z-index:6;
+}
+.countpill[hidden]{display:none;}
+
+/* -- Log screen -- */
+.log-title{
+  font-family:var(--serif);font-style:italic;
+  font-size:18px;color:var(--tx);margin:6px 0 16px;
+}
+.empty{
+  flex:1;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;text-align:center;
+  gap:12px;padding-bottom:40px;color:var(--tx3);
+}
+.empty .glyph{font-size:30px;opacity:.5;}
+.empty .big{font-family:var(--serif);font-style:italic;font-size:20px;color:var(--tx2);}
+.empty .sub{font-size:13px;line-height:1.55;max-width:240px;color:var(--tx3);}
+
+/* -- Bottom tabs -- */
+.tabs{
+  display:flex;flex:none;
+  border-top:1px solid var(--line);
+  background:rgba(20,18,12,.6);
+  padding-bottom:var(--sab);
+}
+.tabs button{
+  flex:1;text-align:center;
+  padding:14px 0 16px;
+  font-size:11.5px;color:var(--tx3);letter-spacing:.08em;
+  background:none;border:0;font-family:var(--sans);
+  cursor:pointer;-webkit-tap-highlight-color:transparent;
+}
+.tabs .ic{display:block;font-size:15px;margin-bottom:4px;}
+.tabs .on{color:var(--tx);}
+.tabs .on .ic{color:var(--jade);}
+
+/* -- Bottom sheets -- */
+.sheet-wrap{position:absolute;inset:0;z-index:18;}
+.sheet-wrap[hidden]{display:none;}
+.scrim{position:absolute;inset:0;background:rgba(8,7,4,.62);}
+.sheet{
+  position:absolute;left:0;right:0;bottom:0;
+  background:var(--d3);
+  border-top:1px solid var(--line);
+  border-radius:22px 22px 0 0;
+  padding:22px 22px calc(var(--sab) + 26px);
+  box-shadow:0 -20px 40px -20px rgba(0,0,0,.6);
+  animation:sheetUp .28s var(--ease);
+}
+@keyframes sheetUp{from{transform:translateY(100%);}to{transform:translateY(0);}}
+.grab{
+  width:38px;height:4px;border-radius:3px;
+  background:rgba(236,231,217,.18);margin:0 auto 16px;
+}
+.sheet .lab{
+  font-size:11px;letter-spacing:.26em;text-transform:uppercase;color:var(--jade);
+}
+.sheet h3{
+  font-family:var(--serif);font-style:italic;font-weight:430;
+  font-size:19px;color:var(--tx);margin-bottom:3px;
 }
 
-/* Idle: no size, inner flows normally */
-.timer-section:not(.immersive) .circle-timer {
-  width: auto;
-  height: auto;
+/* wave rows */
+.wave-row{
+  display:flex;align-items:center;gap:11px;width:100%;
+  background:var(--d1);border:1px solid var(--line);border-radius:12px;
+  padding:13px 14px;margin-top:10px;
+  color:var(--tx2);font-family:var(--sans);font-size:14px;text-align:left;
+  cursor:pointer;-webkit-tap-highlight-color:transparent;
 }
-.timer-section:not(.immersive) .circle-svg {
-  display: none;
+.wave-row .dot{width:7px;height:7px;border-radius:50%;background:var(--tx3);flex:none;}
+.wave-row .nm{color:var(--tx);font-weight:500;}
+.wave-row .sub{color:var(--tx3);font-size:12px;}
+.wave-row .rg{margin-left:auto;font-size:11px;color:var(--tx3);}
+.wave-row.sel{
+  border-color:rgba(93,184,154,.4);
+  background:rgba(93,184,154,.08);
 }
-.timer-section:not(.immersive) .circle-wave-info,
-.timer-section:not(.immersive) .circle-phase {
-  display: none;
-}
+.wave-row.sel .dot{background:var(--jade);box-shadow:0 0 7px var(--jade);}
+.wave-row.sel .nm{color:var(--jade);}
 
-/* Immersive: sized circle with centered content */
-.timer-section.immersive .circle-timer {
-  width: 240px;
-  height: 240px;
+/* volume row inside sheet */
+.vol-row{display:flex;align-items:center;gap:12px;margin-top:18px;}
+.vol-row .vi{
+  font-size:15px;color:var(--tx2);background:none;border:0;
+  cursor:pointer;width:22px;text-align:center;line-height:1;
+  -webkit-tap-highlight-color:transparent;
 }
-.timer-section.immersive .circle-inner {
-  position: absolute;
-  top: 0; left: 0; right: 0; bottom: 0;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
+.vol-slider{
+  flex:1;-webkit-appearance:none;appearance:none;
+  height:3px;background:rgba(236,231,217,.14);border-radius:999px;outline:none;
 }
-.timer-section.immersive .scroll-hint,
-.timer-section.immersive .eyebrow {
-  display: none;
+.vol-slider::-webkit-slider-thumb{
+  -webkit-appearance:none;width:15px;height:15px;border-radius:50%;
+  background:var(--jade);cursor:pointer;
 }
+.vol-slider::-moz-range-thumb{
+  width:15px;height:15px;border-radius:50%;background:var(--jade);border:0;cursor:pointer;
+}
+.vol-slider.muted{opacity:.35;}
 
-/* SVG ring */
-.circle-svg {
-  position: absolute;
-  top: 0; left: 0;
-  width: 100%; height: 100%;
-  transform: rotate(-90deg);
-}
-.circle-bg {
-  fill: none;
-  stroke: rgba(255,255,255,0.04);
-  stroke-width: 3;
-}
-.circle-fg {
-  fill: none;
-  stroke: var(--accent);
-  stroke-width: 3;
-  stroke-linecap: round;
-  transition: stroke 0.5s var(--ease);
-}
-
-/* Wave info above timer in circle */
-.circle-wave-info {
-  font-family: 'Courier New', monospace;
-  font-size: 11px;
-  text-transform: uppercase;
-  letter-spacing: 0.10em;
-  color: var(--dim);
-  margin-bottom: 4px;
-}
-
-/* Phase label below timer in circle */
-.circle-phase {
-  font-size: 13px;
-  color: var(--muted);
-  letter-spacing: 0.02em;
-  white-space: nowrap;
-  text-align: center;
-  margin-top: 4px;
-}
-
-
-.t-num-wrap {
-  position: relative;
-  display: inline-block;
-  cursor: ns-resize;
-  -webkit-tap-highlight-color: transparent;
-  user-select: none;
-  touch-action: none;
-  margin-bottom: 2px;
-}
-.t-num {
-  font-size: clamp(48px, 14vw, 72px);
-  font-weight: 220;
-  letter-spacing: -0.04em;
-  font-variant-numeric: tabular-nums;
-  color: var(--text);
-  line-height: 1;
-  transition: color 0.5s var(--ease);
-}
-.t-num.hl { color: var(--accent); }
-.t-colon {
-  opacity: 0.55;
-}
-
-/* old flat progress arc - hidden now, replaced by circle */
-.progress-arc-wrap { display: none; }
-
-.scroll-hint {
-  font-size: 11px;
-  color: var(--dim);
-  letter-spacing: 0.04em;
-  margin-top: 2px;
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  transition: opacity 0.4s var(--ease);
-}
-.scroll-hint-arrow {
-  font-size: 13px;
-  opacity: 0.55;
-}
-
-
-/* -- Divider -- */
-.divider {
-  height: 1px;
-  background: var(--divider);
-  margin: 6px 0;
-  transition: opacity 0.4s var(--ease);
-}
-
-/* -- Collapsible panels (fade out when running) -- */
-.collapsible {
-  transition: opacity 0.5s var(--ease), max-height 0.5s var(--ease), margin 0.4s var(--ease), transform 0.5s var(--ease);
-  overflow: hidden;
-  max-height: 500px;
-  opacity: 1;
-  transform: translateY(0);
-}
-.collapsible.hidden {
-  opacity: 0;
-  max-height: 0;
-  margin: 0;
-  transform: translateY(-8px);
-  pointer-events: none;
-}
-
-/* -- Status row -- */
-.status-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  transition: opacity 0.4s var(--ease);
-}
-.phase-wrap {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-.phase-pip {
-  width: 7px;
-  height: 7px;
-  border-radius: 9999px;
-  background: var(--accent);
-  flex-shrink: 0;
-  display: none;
-  box-shadow: 0 0 6px currentColor;
-  transition: background 0.3s var(--ease), box-shadow 0.3s var(--ease);
-}
-.phase-pip.visible {
-  display: block;
-}
-.phase-txt {
-  font-size: 13px;
-  color: var(--muted);
-  letter-spacing: 0.01em;
-}
-.rounds-wrap {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-.rounds-eyebrow {
-  font-family: 'Courier New', monospace;
-  font-size: 10px;
-  text-transform: uppercase;
-  letter-spacing: 0.12em;
-  color: var(--dim);
-}
-.rounds-val {
-  font-size: 13px;
-  font-variant-numeric: tabular-nums;
-  color: var(--muted);
-}
-
-/* -- Daily stats -- */
-.daily-stats {
-  font-size: 13px;
-  color: var(--muted);
-  letter-spacing: 0.01em;
-}
-.daily-stats .eyebrow {
-  margin-bottom: 4px;
-}
-
-/* -- Wave section -- */
-.wave-section {
-  margin-bottom: 0;
-}
-.wave-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 6px;
-  margin-bottom: 6px;
-}
-.wb {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  padding: 8px 10px 6px;
-  background: var(--surface);
-  box-shadow: inset 0 0 0 1px var(--ring);
-  border-radius: 14px;
-  border: none;
-  color: var(--muted);
-  font-family: inherit;
-  font-size: 12px;
-  font-weight: 550;
-  cursor: pointer;
-  transition: all 0.22s var(--ease);
-  text-align: left;
-  min-height: 38px;
-  -webkit-tap-highlight-color: transparent;
-  user-select: none;
-}
-.wb:active { transform: scale(0.97); }
-.wb-label {
-  font-family: 'Courier New', monospace;
-  font-size: 10px;
-  text-transform: uppercase;
-  letter-spacing: 0.10em;
-  margin-bottom: 4px;
-  opacity: 0.65;
-}
-.wb-name {
-  font-size: 14px;
-  font-weight: 600;
-  letter-spacing: -0.01em;
-  line-height: 1.2;
-}
-.wb-hz {
-  font-size: 10px;
-  margin-top: 2px;
-  opacity: 0.6;
-}
-.wb.on.beta {
-  background: rgba(var(--accent-rgb),0.1);
-  box-shadow: inset 0 0 0 1px rgba(var(--accent-rgb),0.25), 0 0 0 1px rgba(var(--accent-rgb),0.10);
-  color: var(--accent);
-}
-.wb.on.alpha {
-  background: rgba(var(--alpha-rgb),0.1);
-  box-shadow: inset 0 0 0 1px rgba(var(--alpha-rgb),0.25), 0 0 0 1px rgba(var(--alpha-rgb),0.10);
-  color: var(--alpha);
-}
-.wb.on.theta {
-  background: rgba(var(--theta-rgb),0.1);
-  box-shadow: inset 0 0 0 1px rgba(var(--theta-rgb),0.25), 0 0 0 1px rgba(var(--theta-rgb),0.10);
-  color: var(--theta);
-}
-.wb.on.detox {
-  background: rgba(var(--detox-rgb),0.1);
-  box-shadow: inset 0 0 0 1px rgba(var(--detox-rgb),0.25), 0 0 0 1px rgba(var(--detox-rgb),0.10);
-  color: var(--detox);
-}
-.wb-full {
-  width: 100%;
-  flex-direction: row;
-  align-items: center;
-  gap: 10px;
-  min-height: 42px;
-  padding: 0 14px;
-  margin-bottom: 6px;
-}
-.wb-full .wb-label { margin-bottom: 0; }
-.wb-full .wb-name { font-size: 14px; font-weight: 600; }
-.wb-full .wb-hz { margin-top: 0; opacity: 0.5; font-size: 11px; margin-left: auto; }
-.wave-status {
-  display: flex;
-  align-items: center;
-  gap: 7px;
-  min-height: 20px;
-}
-.wave-dot {
-  width: 6px;
-  height: 6px;
-  border-radius: 9999px;
-  background: var(--dim);
-  flex-shrink: 0;
-  transition: background 0.3s var(--ease), box-shadow 0.3s var(--ease);
-}
-.wave-dot.active {
-  background: var(--accent);
-  box-shadow: 0 0 5px var(--accent);
-}
-#waveTxt {
-  font-size: 12px;
-  color: var(--dim);
-  letter-spacing: 0.01em;
-}
-
-/* -- Ambient section -- */
-.ambient-section {
-  margin-bottom: 0;
-}
-.ambient-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 6px;
-  margin-bottom: 0;
-}
-.ab {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 6px 4px;
-  background: var(--surface);
-  box-shadow: inset 0 0 0 1px var(--ring);
-  border-radius: 14px;
-  border: none;
-  color: var(--muted);
-  font-family: inherit;
-  font-size: 12px;
-  font-weight: 550;
-  cursor: pointer;
-  transition: all 0.22s var(--ease);
-  text-align: center;
-  min-height: 36px;
-  -webkit-tap-highlight-color: transparent;
-  user-select: none;
-}
-.ab:active { transform: scale(0.97); }
-.ab.on {
-  background: rgba(255,255,255,0.09);
-  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.18), 0 0 0 1px rgba(255,255,255,0.08);
-  color: var(--text);
-}
-
-/* -- Volume row -- */
-.volume-row {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-.btn-vol-icon {
-  background: none;
-  border: none;
-  font-size: 15px;
-  cursor: pointer;
-  color: var(--muted);
-  padding: 0;
-  flex-shrink: 0;
-  line-height: 1;
-  width: 20px;
-  text-align: center;
-  -webkit-tap-highlight-color: transparent;
-  transition: color 0.18s var(--ease);
-}
-.btn-vol-icon:hover { color: var(--text); }
-.vol-slider {
-  flex: 1;
-  -webkit-appearance: none;
-  appearance: none;
-  height: 3px;
-  background: rgba(255,255,255,0.12);
-  border-radius: 9999px;
-  outline: none;
-  cursor: pointer;
-}
-.vol-slider::-webkit-slider-thumb {
-  -webkit-appearance: none;
-  width: 14px;
-  height: 14px;
-  border-radius: 9999px;
-  background: rgba(255,255,255,0.65);
-  cursor: pointer;
-  transition: background 0.18s;
-}
-.vol-slider::-webkit-slider-thumb:hover { background: rgba(255,255,255,0.95); }
-.vol-slider::-moz-range-thumb {
-  width: 14px;
-  height: 14px;
-  border-radius: 9999px;
-  background: rgba(255,255,255,0.65);
-  cursor: pointer;
-  border: none;
-}
-.vol-slider.muted { opacity: 0.35; }
-
-/* -- Controls -- */
-.controls {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  margin-top: auto;
-  padding-top: 8px;
-  transition: opacity 0.4s var(--ease);
-}
-.controls-row {
-  display: flex;
-  gap: 8px;
-  align-items: stretch;
-}
-.btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 7px;
-  padding: 0 24px;
-  height: calc(2.4em);
-  min-height: 38px;
-  border-radius: 9999px;
-  border: none;
-  background: rgba(255,255,255,0.05);
-  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.08);
-  color: var(--muted);
-  font-family: inherit;
-  font-size: 14px;
-  font-weight: 550;
-  cursor: pointer;
-  transition: all 0.18s var(--ease-fast);
-  white-space: nowrap;
-  -webkit-tap-highlight-color: transparent;
-  user-select: none;
-}
-.btn:active { transform: scale(0.97); }
-.btn:hover:not(:active) {
-  background: rgba(255,255,255,0.07);
-  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.12);
-  color: var(--text);
-}
-
-.btn-mute {
-  width: 44px;
-  padding: 0;
-  flex-shrink: 0;
-  font-size: 17px;
-}
-
-.btn-start {
-  flex: 1;
-  background: rgba(255,255,255,0.93);
-  color: #0a0a0c;
-  font-weight: 650;
-  box-shadow:
-    0 0 0 1px rgba(255,255,255,0.12),
-    0 4px 20px rgba(0,0,0,0.4),
-    inset 0 1px 0 rgba(255,255,255,0.35);
-}
-.btn-start:hover:not(:active) {
-  background: rgba(255,255,255,0.98);
-  box-shadow:
-    0 0 0 1px rgba(255,255,255,0.18),
-    0 6px 24px rgba(0,0,0,0.45),
-    inset 0 1px 0 rgba(255,255,255,0.5);
-  color: #0a0a0c;
-}
-
-
-/* Stop link - minimal text button, only visible when running */
-.btn-stop-link {
-  display: none;
-  background: none;
-  border: none;
-  color: var(--dim);
-  font-family: inherit;
-  font-size: 12px;
-  font-weight: 500;
-  letter-spacing: 0.02em;
-  cursor: pointer;
-  padding: 4px 0;
-  text-align: center;
-  transition: color 0.18s var(--ease);
-  -webkit-tap-highlight-color: transparent;
-}
-.btn-stop-link:hover { color: var(--muted); }
-.btn-stop-link.visible { display: block; }
-
-/* -- Breathing animation (meditate mode) -- */
-.breathing-ring {
-  display: none;
-  position: fixed;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  width: 180px;
-  height: 180px;
-  border-radius: 9999px;
-  background: transparent;
-  box-shadow:
-    0 0 0 1px rgba(167,139,250,0.15),
-    0 0 60px rgba(167,139,250,0.08);
-  pointer-events: none;
-  z-index: 0;
-}
-.breathing-ring.active {
-  display: block;
-  animation: breathe 8s ease-in-out infinite;
-}
-@keyframes breathe {
-  0%, 100% { transform: translate(-50%, -50%) scale(1); opacity: 0.5; }
-  50% { transform: translate(-50%, -50%) scale(1.35); opacity: 0.9; }
-}
-
-/* -- Running mode pulse -- */
-@keyframes timerPulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.75; }
-}
-
-/* scrollbar for webkit */
-::-webkit-scrollbar { width: 0; }
-
+::-webkit-scrollbar{width:0;}
 </style>
 </head>
 <body>
 
-<div class="breathing-ring" id="breathingRing"></div>
-
 <div class="app">
 
-  <!-- Header -->
-  <div class="header collapsible" id="headerEl">
-    <span class="app-title">Focus Timer</span>
-    <span class="app-subtitle">binaural beats + pomodoro</span>
-    <span class="streak-badge" id="streakBadge"></span>
-    <span class="ver-badge">v1.3</span>
-  </div>
+  <!-- distraction count, only during a running session -->
+  <div class="countpill" id="countPill" hidden>0</div>
 
-  <!-- Tabs -->
-  <div class="tabs collapsible" id="tabsEl" role="tablist">
-    <button class="tab on" id="tabFocus" role="tab" aria-selected="true" aria-controls="focusPanel">
-      <span class="tab-icon">&#9678;</span> Focus
-    </button>
-    <button class="tab" id="tabMed" role="tab" aria-selected="false" aria-controls="meditatePanel">
-      <span class="tab-icon">&#9676;</span> Meditate
-    </button>
-  </div>
-
-  <!-- Timer section -->
-  <div class="timer-section" id="timerSection">
-    <div class="eyebrow" id="timerEyebrow">Work Duration</div>
-
-    <!-- Circle container: always present, SVG only visible when running -->
-    <div class="circle-timer" id="circleTimer">
-      <svg class="circle-svg" viewBox="0 0 240 240">
-        <circle class="circle-bg" cx="120" cy="120" r="108" />
-        <circle class="circle-fg" id="circleFg" cx="120" cy="120" r="108" stroke-dasharray="0 678.58" />
+  <!-- ============ SCREEN 1 · SETUP ============ -->
+  <section class="screen-view" id="screenSetup">
+    <div class="apphdr">
+      <span class="ttl">Focus</span>
+      <svg width="46" height="14" viewBox="0 0 46 14" fill="none" aria-hidden="true">
+        <path d="M2 12 L38 4" stroke="#5DB89A" stroke-width="1.4" stroke-linecap="round"/>
+        <circle cx="40" cy="3.6" r="2.6" fill="#5DB89A"/>
       </svg>
-      <div class="circle-inner">
-        <div class="circle-wave-info" id="circleWaveInfo"></div>
-        <div class="t-num-wrap" id="mainTrack" aria-label="Timer: drag up/down to set minutes">
-          <div class="t-num" id="dispNum">25<span class="t-colon">:</span>00</div>
+      <span class="ver">v1.4</span>
+    </div>
+
+    <div class="seg">
+      <button id="segFocus" class="on">&#9678; <b>Focus</b></button>
+      <button id="segMed">&#9676; <b>Meditate</b></button>
+    </div>
+
+    <div class="dial">
+      <div class="time" id="dialTime">25:00</div>
+      <div class="hint"><span class="ar">&UpDownArrow;</span> drag or scroll to adjust</div>
+    </div>
+
+    <button class="chip" id="waveChip">
+      <span class="dot"></span>
+      <span id="chipText">Beta &middot; Focus &middot; 14&ndash;30 Hz</span>
+      <span class="ca">&#9662;</span>
+    </button>
+
+    <button class="cta" id="btnStart">Start</button>
+  </section>
+
+  <!-- ============ SCREEN 3 · IN FOCUS ============ -->
+  <section class="screen-view focus-view" id="screenFocus" hidden>
+    <div class="doing">Working on: <b id="focusTask">&mdash;</b></div>
+    <div class="runwrap">
+      <div class="bigtime" id="bigTime">25:00</div>
+      <div class="prog">
+        <div class="track">
+          <div class="warm" id="warmZone"></div>
+          <div class="fill" id="progFill"></div>
         </div>
-        <div class="circle-phase" id="circlePhase"></div>
+        <div class="proglab"><span class="w">Warm-up</span><span id="progEnd">25:00</span></div>
       </div>
     </div>
+    <button class="distract" id="btnDistract">Distracted</button>
+    <div class="stopline" id="holdPause">&#9208; Hold to pause</div>
+  </section>
 
-    <div class="scroll-hint" id="hint">
-      <span class="scroll-hint-arrow">&UpDownArrow;</span>
-      <span>drag or scroll to adjust</span>
+  <!-- ============ SCREEN 5 · LOG ============ -->
+  <section class="screen-view" id="screenLog" hidden>
+    <div class="log-title">Log &amp; Self-check</div>
+    <div class="empty" id="logEmpty">
+      <div class="glyph">&#9678;</div>
+      <div class="big">No sessions yet.</div>
+      <div class="sub">Finish your first focus block and your completion rate, distractions, and focus minutes will appear here.</div>
     </div>
+  </section>
 
-  </div>
+  <!-- ============ BOTTOM TABS ============ -->
+  <nav class="tabs">
+    <button id="tabFocus" class="on"><span class="ic">&#9678;</span>Focus</button>
+    <button id="tabLog"><span class="ic">&#9636;</span>Log</button>
+  </nav>
 
-  <!-- Divider -->
-  <div class="divider collapsible" id="div1"></div>
-
-  <!-- Status row -->
-  <div class="status-row collapsible" id="statusRow">
-    <div class="phase-wrap" id="phaseEl">
-      <span class="phase-pip" id="phasePip"></span>
-      <span class="phase-txt" id="phaseTxt">Ready</span>
+  <!-- ============ WAVE PICKER SHEET ============ -->
+  <div class="sheet-wrap" id="waveSheet" hidden>
+    <div class="scrim" data-close></div>
+    <div class="sheet">
+      <div class="grab"></div>
+      <div class="lab">Sound</div>
+      <h3>Choose your wave.</h3>
+      <div id="waveRows"></div>
+      <div class="vol-row">
+        <button class="vi" id="muteBtn" aria-label="Mute">&#128266;</button>
+        <input type="range" class="vol-slider" id="volSlider" min="0" max="100" value="33" aria-label="Volume">
+      </div>
     </div>
-    <div class="rounds-wrap">
-      <span class="rounds-eyebrow">Rounds</span>
-      <span class="rounds-val" id="rndEl">0 rnd &middot; 0 pts</span>
-    </div>
-  </div>
-
-  <!-- Divider -->
-  <div class="divider collapsible" id="div2"></div>
-
-  <!-- Daily stats -->
-  <div class="daily-stats collapsible" id="dailyStats">
-    <span class="phase-txt" id="dailyTxt"></span>
-  </div>
-
-  <!-- Divider -->
-  <div class="divider collapsible" id="div3"></div>
-
-  <!-- Wave section -->
-  <div class="wave-section collapsible" id="waveSection">
-    <div class="eyebrow">Binaural Waves</div>
-    <div class="wave-grid" id="waveGridMain">
-      <button class="wb theta" id="waveTheta" aria-pressed="false">
-        <span class="wb-label">Theta</span>
-        <span class="wb-name">Deep</span>
-        <span class="wb-hz">4&ndash;7 Hz</span>
-      </button>
-      <button class="wb alpha" id="waveA" aria-pressed="false">
-        <span class="wb-label">Alpha</span>
-        <span class="wb-name">Relax</span>
-        <span class="wb-hz">8&ndash;13 Hz</span>
-      </button>
-      <button class="wb beta on" id="waveB" aria-pressed="true">
-        <span class="wb-label">Beta</span>
-        <span class="wb-name">Focus</span>
-        <span class="wb-hz">14&ndash;30 Hz</span>
-      </button>
-    </div>
-    <button class="wb detox wb-full" id="waveDet95" aria-pressed="false">
-      <span class="wb-label">Detox</span>
-      <span class="wb-name">Mold Test</span>
-      <span class="wb-hz">95 Hz</span>
-    </button>
-    <div class="wave-status">
-      <span class="wave-dot" id="waveDot"></span>
-      <span id="waveTxt">Select a wave</span>
-    </div>
-  </div>
-
-  <!-- Controls -->
-  <div class="controls" id="controlsEl">
-    <div class="volume-row">
-      <button class="btn-vol-icon" id="muteBtn" aria-label="Mute/unmute">&#128266;</button>
-      <input type="range" class="vol-slider" id="volSlider" min="0" max="100" value="33" aria-label="Binaural volume">
-    </div>
-    <div class="controls-row">
-      <button class="btn btn-start" id="btnStart">Start</button>
-    </div>
-    <button class="btn-stop-link" id="btnStop">Reset</button>
   </div>
 
 </div>
 
 <script>
+/* ============================================================
+   Focus Timer v2
+   - Preserved engine: binaural audio + countdown tick (v1.3)
+   - New modules: Store, screen router, session lifecycle
+   ============================================================ */
 (function () {
   'use strict';
 
-  // -- State --
-  let isMedMode = false;
-  let timerMin = 25;
-  let isRunning = false;
-  let remaining = 0;
-  let totalPhaseTime = 0;
-  let intervalId = null;
-  let rounds = 0;
-  let pts = 0;
-  let muted = false;
-  let waveVolume = 0.04;
-  let currentWave = 'beta';
-  let audioCtx = null;
-  let oscLeft = null, oscRight = null, gainNode = null;
-  let wakeLock = null;
-  // (single-button design: Start ↔ Pause toggle, separate stop link)
-
+  /* ---------- Wave definitions (audio engine — preserved) ---------- */
   const WAVES = {
-    beta:    { carrier: 200, beat: 20, name: 'Beta \u00b7 20 Hz',  desc: 'Active focus & concentration' },
-    alpha:   { carrier: 200, beat: 10, name: 'Alpha \u00b7 10 Hz', desc: 'Relaxed alertness & calm' },
-    theta:   { carrier: 200, beat: 6,  name: 'Theta \u00b7 6 Hz',  desc: 'Deep meditation & creativity' },
-    detox95: { carrier: 200, beat: 95, name: 'Detox \u00b7 95 Hz', desc: 'High Gamma \u00b7 mold resonance test' },
+    theta:   { carrier:200, beat:6,  nm:'Theta', sub:'Deep',      rg:'4–7 Hz',   desc:'Deep meditation & creativity' },
+    alpha:   { carrier:200, beat:10, nm:'Alpha', sub:'Relax',     rg:'8–13 Hz',  desc:'Relaxed alertness & calm' },
+    beta:    { carrier:200, beat:20, nm:'Beta',  sub:'Focus',     rg:'14–30 Hz', desc:'Active focus & concentration' },
+    detox95: { carrier:200, beat:95, nm:'Detox', sub:'Mold Test', rg:'95 Hz',    desc:'High Gamma · mold resonance test' },
+  };
+  const WAVE_ORDER = ['theta','alpha','beta','detox95'];
+
+  /* ---------- Store module (localStorage, per spec) ---------- */
+  const Store = {
+    KEY_SESSIONS: 'ft.sessions',
+    KEY_SETTINGS: 'ft.settings',
+    sessions() {
+      try { return JSON.parse(localStorage.getItem(this.KEY_SESSIONS)) || []; }
+      catch (e) { return []; }
+    },
+    addSession(o) {
+      const a = this.sessions();
+      a.push(o);
+      try { localStorage.setItem(this.KEY_SESSIONS, JSON.stringify(a)); } catch (e) {}
+    },
+    settings() {
+      const def = { defaultMode:'focus', defaultWave:'beta', defaultPlannedSec:1500, warmupSec:900, vol:33 };
+      try { return Object.assign(def, JSON.parse(localStorage.getItem(this.KEY_SETTINGS)) || {}); }
+      catch (e) { return def; }
+    },
+    saveSettings(s) {
+      try { localStorage.setItem(this.KEY_SETTINGS, JSON.stringify(s)); } catch (e) {}
+    },
   };
 
+  /* ---------- Runtime state ---------- */
+  let isMedMode   = false;
+  let timerMin    = 25;
+  let warmupSec   = 900;
+  let isRunning   = false;
+  let paused      = false;
+  let remaining   = 0;
+  let totalPhaseTime = 0;
+  let intervalId  = null;
+  let muted       = false;
+  let waveVolume  = 0.04;
+  let currentWave = 'beta';
+  let activeTab   = 'focus';
+  let cur         = null;   // current session object
 
-  // -- Elements --
-  const tabFocus = document.getElementById('tabFocus');
-  const tabMed = document.getElementById('tabMed');
-  const timerSection = document.getElementById('timerSection');
-  const timerEyebrow = document.getElementById('timerEyebrow');
-  const mainTrack = document.getElementById('mainTrack');
-  const dispNum = document.getElementById('dispNum');
-  const hintEl = document.getElementById('hint');
-  const phasePip = document.getElementById('phasePip');
-  const phaseTxt = document.getElementById('phaseTxt');
-  const rndEl = document.getElementById('rndEl');
-  const dailyTxt = document.getElementById('dailyTxt');
-  const streakBadge = document.getElementById('streakBadge');
-  const muteBtn = document.getElementById('muteBtn');
-  const btnStart = document.getElementById('btnStart');
-  const btnStop = document.getElementById('btnStop');
-  const breathRing = document.getElementById('breathingRing');
-  const waveDot = document.getElementById('waveDot');
-  const waveTxt = document.getElementById('waveTxt');
-  const waveB = document.getElementById('waveB');
-  const waveA = document.getElementById('waveA');
-  const waveTheta = document.getElementById('waveTheta');
-  const waveDet95 = document.getElementById('waveDet95');
-  const allWaveBtns = [waveTheta, waveA, waveB, waveDet95];
-  const waveIdMap = { beta: waveB, alpha: waveA, theta: waveTheta, detox95: waveDet95 };
-  const circleTimer = document.getElementById('circleTimer');
-  const circleFg = document.getElementById('circleFg');
-  const circlePhase = document.getElementById('circlePhase');
-  const circleWaveInfo = document.getElementById('circleWaveInfo');
+  /* audio nodes */
+  let audioCtx = null, oscLeft = null, oscRight = null, gainNode = null;
+  let wakeLock = null;
 
-  // All collapsible panels
-  const collapsibles = document.querySelectorAll('.collapsible');
+  /* ---------- Elements ---------- */
+  const $ = function (id) { return document.getElementById(id); };
+  const screenSetup = $('screenSetup');
+  const screenFocus = $('screenFocus');
+  const screenLog   = $('screenLog');
+  const segFocus = $('segFocus'), segMed = $('segMed');
+  const dialTime = $('dialTime');
+  const chipText = $('chipText'), waveChip = $('waveChip');
+  const btnStart = $('btnStart');
+  const focusTask = $('focusTask'), bigTime = $('bigTime');
+  const warmZone = $('warmZone'), progFill = $('progFill'), progEnd = $('progEnd');
+  const btnDistract = $('btnDistract'), holdPause = $('holdPause');
+  const countPill = $('countPill');
+  const tabFocus = $('tabFocus'), tabLog = $('tabLog');
+  const waveSheet = $('waveSheet'), waveRows = $('waveRows');
+  const volSlider = $('volSlider'), muteBtn = $('muteBtn');
 
-  const volSlider = document.getElementById('volSlider');
-
-  // -- localStorage helpers --
+  /* ---------- Helpers ---------- */
+  function pad(n) { return String(n).padStart(2, '0'); }
+  function fmt(sec) { return pad(Math.floor(sec / 60)) + ':' + pad(sec % 60); }
   function todayStr() {
     const d = new Date();
-    return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+    return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate());
+  }
+  function clampMin(v) { return Math.max(1, Math.min(180, v)); }
+
+  /* ---------- Settings persistence ---------- */
+  function persistSettings() {
+    Store.saveSettings({
+      defaultMode: isMedMode ? 'meditate' : 'focus',
+      defaultWave: currentWave,
+      defaultPlannedSec: timerMin * 60,
+      warmupSec: warmupSec,
+      vol: parseInt(volSlider.value, 10),
+    });
   }
 
-  function yesterdayStr() {
-    const d = new Date();
-    d.setDate(d.getDate() - 1);
-    return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
-  }
-
-  // -- Settings memory --
-  function saveSettings() {
-    const s = { timerMin, wave: currentWave, vol: volSlider.value };
-    try { localStorage.setItem('focustimer_settings', JSON.stringify(s)); } catch(e) {}
-  }
-
-  function loadSettings() {
-    try {
-      const raw = localStorage.getItem('focustimer_settings');
-      if (!raw) return;
-      const s = JSON.parse(raw);
-      if (s.timerMin >= 1 && s.timerMin <= 180) timerMin = s.timerMin;
-      if (WAVES[s.wave]) currentWave = s.wave;
-      if (s.vol !== undefined) { volSlider.value = s.vol; }
-      waveVolume = (volSlider.value / 100) * 0.12;
-    } catch(e) {}
-  }
-
-  // -- Daily record --
-  function getDaily() {
-    try {
-      const raw = localStorage.getItem('focustimer_daily');
-      if (!raw) return null;
-      return JSON.parse(raw);
-    } catch(e) { return null; }
-  }
-
-  function initDaily() {
-    let d = getDaily();
-    const today = todayStr();
-    if (!d || d.date !== today) {
-      d = { date: today, rounds: 0, focusMin: 0 };
-      try { localStorage.setItem('focustimer_daily', JSON.stringify(d)); } catch(e) {}
-    }
-    return d;
-  }
-
-  function updateDaily(addRounds, addFocusMin) {
-    let d = initDaily();
-    d.rounds += addRounds;
-    d.focusMin += addFocusMin;
-    try { localStorage.setItem('focustimer_daily', JSON.stringify(d)); } catch(e) {}
-    renderDaily();
-  }
-
-  function renderDaily() {
-    const d = initDaily();
-    dailyTxt.textContent = 'Today: ' + d.rounds + ' rounds \u00b7 ' + d.focusMin + ' min focused';
-  }
-
-  // -- Streak --
-  function getStreak() {
-    try {
-      const raw = localStorage.getItem('focustimer_streak');
-      if (!raw) return { lastDate: '', count: 0 };
-      return JSON.parse(raw);
-    } catch(e) { return { lastDate: '', count: 0 }; }
-  }
-
-  function updateStreak() {
-    const today = todayStr();
-    const yesterday = yesterdayStr();
-    let s = getStreak();
-    if (s.lastDate === today) return;
-    if (s.lastDate === yesterday) {
-      s.count++;
-    } else {
-      s.count = 1;
-    }
-    s.lastDate = today;
-    try { localStorage.setItem('focustimer_streak', JSON.stringify(s)); } catch(e) {}
-    renderStreak();
-  }
-
-  function renderStreak() {
-    const s = getStreak();
-    if (s.count >= 2) {
-      streakBadge.textContent = '\ud83d\udd25 ' + s.count + ' days';
-      streakBadge.style.display = '';
-    } else {
-      streakBadge.style.display = 'none';
-    }
-  }
-
-  // -- Display helpers --
-  function fmtTime(totalSec) {
-    const m = Math.floor(totalSec / 60);
-    const s = totalSec % 60;
-    return String(m).padStart(2,'0') + '<span class="t-colon">:</span>' + String(s).padStart(2,'0');
-  }
-
-  function updateDisp() {
-    if (isRunning) {
-      dispNum.innerHTML = fmtTime(remaining);
-    } else {
-      dispNum.innerHTML = String(timerMin).padStart(2,'0') + '<span class="t-colon">:</span>00';
-    }
-  }
-
-  function setPhase(text, color) {
-    phaseTxt.textContent = text;
-    circlePhase.textContent = text;
-    if (color) {
-      phasePip.style.background = color;
-      phasePip.style.boxShadow = '0 0 6px ' + color;
-      phasePip.classList.add('visible');
-    } else {
-      phasePip.classList.remove('visible');
-    }
-  }
-
-  function updateRnd() {
-    rndEl.textContent = rounds + ' rnd \u00b7 ' + pts + ' pts';
-  }
-
-
-  // -- Circular progress --
-  const CIRCLE_R = 108;
-  const CIRCLE_C = 2 * Math.PI * CIRCLE_R; // ~678.58
-
-  function updateCircleProgress() {
-    if (!isRunning || totalPhaseTime <= 0) {
-      circleFg.setAttribute('stroke-dasharray', '0 ' + CIRCLE_C);
-      return;
-    }
-    const progress = 1 - (remaining / totalPhaseTime);
-    const dash = progress * CIRCLE_C;
-    circleFg.setAttribute('stroke-dasharray', dash + ' ' + CIRCLE_C);
-    circleFg.style.stroke = 'var(--accent)';
-  }
-
-  // -- Immersive mode (panels collapse when running) --
-  function enterImmersive() {
-    collapsibles.forEach(function(el) { el.classList.add('hidden'); });
-    timerSection.classList.add('immersive');
-  }
-
-  function exitImmersive() {
-    collapsibles.forEach(function(el) { el.classList.remove('hidden'); });
-    timerSection.classList.remove('immersive');
-  }
-
-  // -- Mode switching --
-  function setMode(med) {
-    isMedMode = med;
-    tabFocus.classList.toggle('on', !med);
-    tabFocus.setAttribute('aria-selected', String(!med));
-    tabMed.classList.toggle('on', med);
-    tabMed.setAttribute('aria-selected', String(med));
-
-    if (med) {
-      timerEyebrow.textContent = 'Session Duration';
-      document.body.classList.add('cm');
-      document.body.classList.remove('cf','cb');
-      breathRing.classList.add('active');
-    } else {
-      timerEyebrow.textContent = 'Work Duration';
-      document.body.classList.remove('cm');
-      breathRing.classList.remove('active');
-    }
-
-    if (!isRunning) {
-      timerMin = med ? 15 : 25;
-      updateDisp();
-      saveSettings();
-    }
-  }
-
-  tabFocus.addEventListener('click', function() { if (isRunning) return; setMode(false); });
-  tabMed.addEventListener('click', function() { if (isRunning) return; setMode(true); });
-
-  // -- Drag / scroll for main timer --
-  let dragStartY = null;
-  let dragBase = null;
-  const STEP_PX = 8;
-  const STEP_TOUCH = 7;
-
-  function clampMin(val) {
-    return Math.max(1, Math.min(180, val));
-  }
-
-  mainTrack.addEventListener('wheel', function(e) {
-    if (isRunning) return;
-    e.preventDefault();
-    const delta = e.deltaY > 0 ? -1 : 1;
-    timerMin = clampMin(timerMin + delta);
-    updateDisp();
-    saveSettings();
-  }, { passive: false });
-
-  mainTrack.addEventListener('mousedown', function(e) {
-    if (isRunning) return;
-    dragStartY = e.clientY;
-    dragBase = timerMin;
-    document.addEventListener('mousemove', onMouseMove);
-    document.addEventListener('mouseup', onMouseUp);
-  });
-
-  function onMouseMove(e) {
-    const dy = dragStartY - e.clientY;
-    const steps = Math.round(dy / STEP_PX);
-    timerMin = clampMin(dragBase + steps);
-    updateDisp();
-  }
-
-  function onMouseUp() {
-    document.removeEventListener('mousemove', onMouseMove);
-    document.removeEventListener('mouseup', onMouseUp);
-    saveSettings();
-  }
-
-  mainTrack.addEventListener('touchstart', function(e) {
-    if (isRunning) return;
-    dragStartY = e.touches[0].clientY;
-    dragBase = timerMin;
-  }, { passive: true });
-
-  mainTrack.addEventListener('touchmove', function(e) {
-    if (isRunning) return;
-    const dy = dragStartY - e.touches[0].clientY;
-    const steps = Math.round(dy / STEP_TOUCH);
-    timerMin = clampMin(dragBase + steps);
-    updateDisp();
-  }, { passive: true });
-
-  mainTrack.addEventListener('touchend', function() {
-    saveSettings();
-  }, { passive: true });
-
-
-  // -- Audio --
+  /* ---------- Audio engine (preserved from v1.3) ---------- */
   function initAudio() {
-    if (!audioCtx) {
-      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    }
+    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
     if (audioCtx.state === 'suspended') audioCtx.resume();
   }
 
@@ -1156,287 +573,315 @@ body.cm { background: radial-gradient(ellipse at 50% 50%, rgba(167,139,250,0.06)
     oscRight.type = 'sine';
     oscRight.frequency.value = w.carrier + w.beat;
 
-    const panL = audioCtx.createStereoPanner();
-    panL.pan.value = -1;
-    const panR = audioCtx.createStereoPanner();
-    panR.pan.value = 1;
+    const panL = audioCtx.createStereoPanner(); panL.pan.value = -1;
+    const panR = audioCtx.createStereoPanner(); panR.pan.value = 1;
 
     oscLeft.connect(panL).connect(merger, 0, 0);
     oscRight.connect(panR).connect(merger, 0, 1);
 
     oscLeft.start();
     oscRight.start();
-
-    waveDot.classList.add('active');
-    var wClass = currentWave;
-    var dotColors = {
-      beta: 'var(--accent)', alpha: 'var(--alpha)', theta: 'var(--theta)',
-      detox23: 'var(--detox)', detox95: 'var(--detox)'
-    };
-    var dc = dotColors[wClass] || 'var(--accent)';
-    waveDot.style.background = dc;
-    waveDot.style.boxShadow = '0 0 5px ' + dc;
-    waveTxt.textContent = w.name + ' — ' + w.desc;
-    circleWaveInfo.textContent = w.name;
   }
 
   function stopWaves() {
-    if (oscLeft) { try { oscLeft.stop(); } catch(e) {} oscLeft = null; }
-    if (oscRight) { try { oscRight.stop(); } catch(e) {} oscRight = null; }
-    if (gainNode) { gainNode = null; }
-    waveDot.classList.remove('active');
-    waveDot.style.background = '';
-    waveDot.style.boxShadow = '';
-    waveTxt.textContent = 'Select a wave';
-  }
-
-
-  // -- Wave buttons --
-  function selectWave(id) {
-    currentWave = id;
-    allWaveBtns.forEach(function(btn) {
-      btn.classList.remove('on');
-      btn.setAttribute('aria-pressed', 'false');
-    });
-    waveIdMap[id].classList.add('on');
-    waveIdMap[id].setAttribute('aria-pressed', 'true');
-    var w = WAVES[id];
-    if (!isRunning) {
-      waveTxt.textContent = w.name + ' — ' + w.desc;
-    }
-    if (isRunning && !muted) {
-      startWaves();
-    }
-    saveSettings();
-  }
-
-  waveB.addEventListener('click', function() { selectWave('beta'); });
-  waveA.addEventListener('click', function() { selectWave('alpha'); });
-  waveTheta.addEventListener('click', function() { selectWave('theta'); });
-  waveDet95.addEventListener('click', function() { selectWave('detox95'); });
-
-  // -- Volume icon + slider --
-  function updateVolIcon() {
-    var v = parseInt(volSlider.value);
-    if (muted || v === 0) {
-      muteBtn.innerHTML = '&#128264;';
-    } else if (v < 40) {
-      muteBtn.innerHTML = '&#128265;';
-    } else {
-      muteBtn.innerHTML = '&#128266;';
-    }
-    volSlider.classList.toggle('muted', muted);
-  }
-
-  muteBtn.addEventListener('click', function() {
-    muted = !muted;
-    muteBtn.setAttribute('aria-label', muted ? 'Unmute' : 'Mute');
-    if (gainNode) {
-      gainNode.gain.setTargetAtTime(muted ? 0 : waveVolume, audioCtx.currentTime, 0.05);
-    }
-    updateVolIcon();
-  });
-
-  volSlider.addEventListener('input', function() {
-    waveVolume = (this.value / 100) * 0.12;
-    if (gainNode && !muted) {
-      gainNode.gain.setTargetAtTime(waveVolume, audioCtx.currentTime, 0.05);
-    }
-    updateVolIcon();
-    saveSettings();
-  });
-
-  // -- Wake Lock --
-  async function requestWakeLock() {
-    if ('wakeLock' in navigator) {
-      try { wakeLock = await navigator.wakeLock.request('screen'); } catch(e) {}
-    }
-  }
-
-  function releaseWakeLock() {
-    if (wakeLock) { wakeLock.release(); wakeLock = null; }
-  }
-
-  // -- Background phase tint --
-  function setBodyPhase() {
-    document.body.classList.remove('cf','cm');
-    if (isMedMode) {
-      document.body.classList.add('cm');
-    } else if (isRunning) {
-      document.body.classList.add('cf');
-    }
-  }
-
-  // -- Timer logic --
-  function startTimer() {
-    remaining = timerMin * 60;
-    totalPhaseTime = remaining;
-    isRunning = true;
-
-    btnStart.textContent = 'Pause';
-    btnStop.classList.add('visible');
-    hintEl.style.opacity = '0';
-
-    enterImmersive();
-
-    if (isMedMode) {
-      setPhase('Meditating', 'var(--alpha)');
-      breathRing.classList.add('active');
-    } else {
-      setPhase('Focus', 'var(--accent)');
-    }
-
-    setBodyPhase();
-    requestWakeLock();
-    if (!muted) {
-      startWaves();
-    }
-
-    updateCircleProgress();
-    intervalId = setInterval(tick, 1000);
-  }
-
-  function pauseTimer() {
-    clearInterval(intervalId);
-    intervalId = null;
-    btnStart.textContent = 'Resume';
-    setPhase('Paused', 'rgba(255,255,255,0.35)');
-  }
-
-  function resumeTimer() {
-    btnStart.textContent = 'Pause';
-    if (isMedMode) {
-      setPhase('Meditating', 'var(--alpha)');
-    } else {
-      setPhase('Focus', 'var(--accent)');
-    }
-    intervalId = setInterval(tick, 1000);
-  }
-
-  function stopTimer() {
-    clearInterval(intervalId);
-    intervalId = null;
-    isRunning = false;
-    totalPhaseTime = 0;
-    stopWaves();
-    releaseWakeLock();
-    breathRing.classList.remove('active');
-
-    exitImmersive();
-
-    btnStart.textContent = 'Start';
-    btnStop.classList.remove('visible');
-    hintEl.style.opacity = '1';
-    setPhase('Ready', null);
-    setBodyPhase();
-    updateDisp();
-    updateCircleProgress();
-    circleWaveInfo.textContent = '';
-  }
-
-  function tick() {
-    if (remaining <= 0) {
-      onPhaseEnd();
-      return;
-    }
-    remaining--;
-    updateDisp();
-    updateCircleProgress();
-
-    // pulse timer number on last 10s
-    if (remaining <= 10 && remaining > 0) {
-      dispNum.style.color = 'var(--accent)';
-    } else {
-      dispNum.style.color = '';
-    }
+    if (oscLeft)  { try { oscLeft.stop(); }  catch (e) {} oscLeft = null; }
+    if (oscRight) { try { oscRight.stop(); } catch (e) {} oscRight = null; }
+    gainNode = null;
   }
 
   function playNotification() {
     initAudio();
-    var ctx = audioCtx;
-    var now = ctx.currentTime;
-
-    // Soft chime - two gentle tones
-    [660, 880].forEach(function(freq, i) {
-      var osc = ctx.createOscillator();
-      var g = ctx.createGain();
-      osc.connect(g);
-      g.connect(ctx.destination);
-      osc.type = 'sine';
-      osc.frequency.value = freq;
-      var t = now + i * 0.3;
+    const ctx = audioCtx, now = ctx.currentTime;
+    [660, 880].forEach(function (freq, i) {
+      const osc = ctx.createOscillator(), g = ctx.createGain();
+      osc.connect(g); g.connect(ctx.destination);
+      osc.type = 'sine'; osc.frequency.value = freq;
+      const t = now + i * 0.3;
       g.gain.setValueAtTime(0, t);
       g.gain.linearRampToValueAtTime(0.25, t + 0.05);
       g.gain.exponentialRampToValueAtTime(0.001, t + 1.2);
-      osc.start(t);
-      osc.stop(t + 1.2);
+      osc.start(t); osc.stop(t + 1.2);
     });
+    if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
+  }
 
-    if (navigator.vibrate) {
-      navigator.vibrate([200, 100, 200]);
+  /* ---------- Wake lock ---------- */
+  async function requestWakeLock() {
+    if ('wakeLock' in navigator) {
+      try { wakeLock = await navigator.wakeLock.request('screen'); } catch (e) {}
     }
+  }
+  function releaseWakeLock() {
+    if (wakeLock) { wakeLock.release(); wakeLock = null; }
+  }
+
+  /* ---------- Volume ---------- */
+  function updateVolIcon() {
+    const v = parseInt(volSlider.value, 10);
+    if (muted || v === 0)      muteBtn.innerHTML = '&#128264;';
+    else if (v < 40)           muteBtn.innerHTML = '&#128265;';
+    else                       muteBtn.innerHTML = '&#128266;';
+    volSlider.classList.toggle('muted', muted);
+  }
+  volSlider.addEventListener('input', function () {
+    waveVolume = (this.value / 100) * 0.12;
+    if (gainNode && !muted) gainNode.gain.setTargetAtTime(waveVolume, audioCtx.currentTime, 0.05);
+    updateVolIcon();
+    persistSettings();
+  });
+  muteBtn.addEventListener('click', function () {
+    muted = !muted;
+    muteBtn.setAttribute('aria-label', muted ? 'Unmute' : 'Mute');
+    if (gainNode) gainNode.gain.setTargetAtTime(muted ? 0 : waveVolume, audioCtx.currentTime, 0.05);
+    updateVolIcon();
+  });
+
+  /* ---------- Screen router ---------- */
+  function render() {
+    const onFocus = activeTab === 'focus';
+    screenSetup.hidden = !(onFocus && !isRunning);
+    screenFocus.hidden = !(onFocus && isRunning);
+    screenLog.hidden   = !(activeTab === 'log');
+    countPill.hidden   = !(onFocus && isRunning && cur && cur.distractions > 0);
+    tabFocus.classList.toggle('on', onFocus);
+    tabLog.classList.toggle('on', activeTab === 'log');
+  }
+  tabFocus.addEventListener('click', function () { activeTab = 'focus'; render(); });
+  tabLog.addEventListener('click', function () { activeTab = 'log'; render(); });
+
+  /* ---------- Mode toggle ---------- */
+  function setMode(med) {
+    if (isRunning) return;
+    isMedMode = med;
+    segFocus.classList.toggle('on', !med);
+    segMed.classList.toggle('on', med);
+    persistSettings();
+  }
+  segFocus.addEventListener('click', function () { setMode(false); });
+  segMed.addEventListener('click', function () { setMode(true); });
+
+  /* ---------- Dial display + drag/scroll ---------- */
+  function updateDialDisp() { dialTime.textContent = pad(timerMin) + ':00'; }
+
+  let dragStartY = null, dragBase = null;
+  const STEP_PX = 8, STEP_TOUCH = 7;
+
+  dialTime.addEventListener('wheel', function (e) {
+    if (isRunning) return;
+    e.preventDefault();
+    timerMin = clampMin(timerMin + (e.deltaY > 0 ? -1 : 1));
+    updateDialDisp(); persistSettings();
+  }, { passive: false });
+
+  dialTime.addEventListener('mousedown', function (e) {
+    if (isRunning) return;
+    dragStartY = e.clientY; dragBase = timerMin;
+    document.addEventListener('mousemove', onMouseMove);
+    document.addEventListener('mouseup', onMouseUp);
+  });
+  function onMouseMove(e) {
+    timerMin = clampMin(dragBase + Math.round((dragStartY - e.clientY) / STEP_PX));
+    updateDialDisp();
+  }
+  function onMouseUp() {
+    document.removeEventListener('mousemove', onMouseMove);
+    document.removeEventListener('mouseup', onMouseUp);
+    persistSettings();
+  }
+  dialTime.addEventListener('touchstart', function (e) {
+    if (isRunning) return;
+    dragStartY = e.touches[0].clientY; dragBase = timerMin;
+  }, { passive: true });
+  dialTime.addEventListener('touchmove', function (e) {
+    if (isRunning) return;
+    timerMin = clampMin(dragBase + Math.round((dragStartY - e.touches[0].clientY) / STEP_TOUCH));
+    updateDialDisp();
+  }, { passive: true });
+  dialTime.addEventListener('touchend', function () { persistSettings(); }, { passive: true });
+
+  /* ---------- Wave picker ---------- */
+  function updateChip() {
+    const w = WAVES[currentWave];
+    chipText.innerHTML = w.nm + ' &middot; ' + w.sub + ' &middot; ' + w.rg;
+  }
+  function buildWaveRows() {
+    waveRows.innerHTML = '';
+    WAVE_ORDER.forEach(function (id) {
+      const w = WAVES[id];
+      const b = document.createElement('button');
+      b.className = 'wave-row' + (id === currentWave ? ' sel' : '');
+      b.dataset.wave = id;
+      b.innerHTML =
+        '<span class="dot"></span>' +
+        '<span class="nm">' + w.nm + '</span>' +
+        '<span class="sub">' + w.sub + '</span>' +
+        '<span class="rg">' + w.rg + '</span>';
+      b.addEventListener('click', function () { selectWave(id); closeSheet(waveSheet); });
+      waveRows.appendChild(b);
+    });
+  }
+  function selectWave(id) {
+    currentWave = id;
+    updateChip();
+    buildWaveRows();
+    if (isRunning && !muted) startWaves();  // live swap while running
+    persistSettings();
+  }
+  waveChip.addEventListener('click', function () { if (!isRunning) openSheet(waveSheet); });
+
+  /* ---------- Sheets ---------- */
+  function openSheet(el) { el.hidden = false; }
+  function closeSheet(el) { el.hidden = true; }
+  document.querySelectorAll('[data-close]').forEach(function (el) {
+    el.addEventListener('click', function () { closeSheet(el.closest('.sheet-wrap')); });
+  });
+
+  /* ---------- Session lifecycle ---------- */
+  function startSession(task) {
+    cur = {
+      id: 's_' + Date.now(),
+      date: todayStr(),
+      mode: isMedMode ? 'meditate' : 'focus',
+      wave: currentWave,
+      plannedSec: timerMin * 60,
+      actualSec: 0,
+      completed: false,
+      task: task || '',
+      distractions: 0,
+      returns: [],
+      selfRating: null,
+      startedAt: new Date().toISOString(),
+      endedAt: null,
+    };
+    startTimer();
+  }
+
+  function startTimer() {
+    remaining = timerMin * 60;
+    totalPhaseTime = remaining;
+    isRunning = true;
+    paused = false;
+    activeTab = 'focus';
+
+    focusTask.textContent = cur.task || (isMedMode ? 'Meditation' : 'Focus session');
+    holdPause.innerHTML = '&#9208; Hold to pause';
+    countPill.textContent = '0';
+
+    render();
+    updateRun();
+    requestWakeLock();
+    if (!muted) startWaves();
+    intervalId = setInterval(tick, 1000);
+  }
+
+  function tick() {
+    if (remaining <= 0) { onPhaseEnd(); return; }
+    remaining--;
+    cur.actualSec++;
+    updateRun();
+  }
+
+  function updateRun() {
+    bigTime.textContent = fmt(remaining);
+    const planned = totalPhaseTime || 1;
+    const elapsed = planned - remaining;
+    progFill.style.width = (elapsed / planned * 100) + '%';
+    warmZone.style.width = (Math.min(warmupSec, planned) / planned * 100) + '%';
+    progEnd.textContent = fmt(planned);
+    bigTime.classList.toggle('ending', remaining <= 10 && remaining > 0);
+  }
+
+  function pauseTimer() {
+    if (!isRunning || paused) return;
+    clearInterval(intervalId); intervalId = null;
+    paused = true;
+    holdPause.textContent = 'Paused · tap to resume';
+  }
+  function resumeTimer() {
+    if (!isRunning || !paused) return;
+    paused = false;
+    holdPause.innerHTML = '&#9208; Hold to pause';
+    intervalId = setInterval(tick, 1000);
+  }
+
+  function endSession() {
+    if (!isRunning) return;
+    cur.completed = remaining <= 0;
+    cur.endedAt = new Date().toISOString();
+    // NOTE: persistence to ft.sessions lands in commit 4 (Return sheet / End session)
+    stopRun();
   }
 
   function onPhaseEnd() {
-    clearInterval(intervalId);
-    intervalId = null;
-
-    rounds++;
-    pts += timerMin;
-    updateRnd();
-    updateDaily(1, timerMin);
-
-    var d = getDaily();
-    if (d && d.rounds === 1) {
-      updateStreak();
-    }
-
+    clearInterval(intervalId); intervalId = null;
+    cur.completed = true;
+    cur.endedAt = new Date().toISOString();
     playNotification();
-    stopTimer();
-    setPhase(isMedMode ? 'Session complete' : 'Focus complete', null);
+    // NOTE: persistence lands in commit 4
+    stopRun();
   }
 
-  function selectWaveAudio(id) {
-    currentWave = id;
-    if (isRunning && !muted) startWaves();
+  function stopRun() {
+    clearInterval(intervalId); intervalId = null;
+    isRunning = false;
+    paused = false;
+    totalPhaseTime = 0;
+    stopWaves();
+    releaseWakeLock();
+    cur = null;
+    activeTab = 'focus';
+    updateDialDisp();
+    render();
   }
 
-  // -- Btn Start: Start → Pause → Resume cycle --
-  btnStart.addEventListener('click', function() {
-    if (!isRunning) {
-      startTimer();
-    } else if (intervalId) {
-      pauseTimer();
-    } else {
-      // Paused → resume
-      resumeTimer();
-    }
-  });
+  /* ---------- Start button (commit 1: direct start; Begin sheet in commit 2) ---------- */
+  btnStart.addEventListener('click', function () { startSession(''); });
 
-  // -- Btn Stop: simple stop & reset --
-  btnStop.addEventListener('click', function() {
+  /* ---------- Distracted (commit 1: silent +1; Return sheet in commit 4) ---------- */
+  btnDistract.addEventListener('click', function () {
     if (!isRunning) return;
-    stopTimer();
+    cur.distractions++;
+    countPill.textContent = cur.distractions;
+    countPill.hidden = false;
   });
 
-  // -- Init --
-  loadSettings();
+  /* ---------- Hold to pause / tap to resume ---------- */
+  let holdTimer = null, didHoldPause = false;
+  holdPause.addEventListener('pointerdown', function () {
+    if (!isRunning) return;
+    if (paused) return;
+    didHoldPause = false;
+    holdTimer = setTimeout(function () { pauseTimer(); didHoldPause = true; }, 450);
+  });
+  function endHold() {
+    if (holdTimer) { clearTimeout(holdTimer); holdTimer = null; }
+    if (didHoldPause) { didHoldPause = false; return; }
+    if (paused) resumeTimer();
+  }
+  holdPause.addEventListener('pointerup', endHold);
+  holdPause.addEventListener('pointerleave', function () {
+    if (holdTimer) { clearTimeout(holdTimer); holdTimer = null; }
+  });
 
-  // Apply saved wave selection
-  selectWave(currentWave);
+  /* ---------- Init ---------- */
+  (function init() {
+    const s = Store.settings();
+    isMedMode   = s.defaultMode === 'meditate';
+    currentWave = WAVES[s.defaultWave] ? s.defaultWave : 'beta';
+    timerMin    = clampMin(Math.round((s.defaultPlannedSec || 1500) / 60));
+    warmupSec   = s.warmupSec || 900;
+    volSlider.value = (s.vol != null ? s.vol : 33);
+    waveVolume  = (volSlider.value / 100) * 0.12;
 
-  waveVolume = (volSlider.value / 100) * 0.12;
-  updateVolIcon();
+    segFocus.classList.toggle('on', !isMedMode);
+    segMed.classList.toggle('on', isMedMode);
 
-  updateDisp();
-  updateRnd();
-  setPhase('Ready', null);
-  renderDaily();
-  renderStreak();
-  updateCircleProgress();
-
-  // Ensure hint visible on start
-  hintEl.style.opacity = '1';
+    updateDialDisp();
+    updateChip();
+    buildWaveRows();
+    updateVolIcon();
+    render();
+  })();
 
 })();
 </script>
